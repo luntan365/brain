@@ -4,6 +4,7 @@
 
 #include <unordered_map>
 #include "WoWObject.h"
+#include "WoWPlayer.h"
 
 class WoWObjectManager
 {
@@ -30,6 +31,8 @@ public:
     void ReadObject(PVOID objPtr);
 
     uint64_t GetActivePlayerGUID();
+
+    WoWPlayer GetPlayer();
 
     boost::optional<WoWObject> GetObject(uint64_t guid);
 

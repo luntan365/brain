@@ -13,6 +13,10 @@ public:
 
     static void Read(WoWPlayer* pPlayer, PVOID address);
 
+    static void ClickToMove(const Position& destination);
+
+    static void CastSpellByName(const std::string& name);
+
 protected:
     Position mCorpsePosition;
 };
