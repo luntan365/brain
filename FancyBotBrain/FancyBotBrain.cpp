@@ -17,13 +17,9 @@
 #include "EndSceneManager.h"
 #include "Global.h"
 #include "GameState.h"
+#include "HttpApi.h"
 #include "WoWPlayer.h"
 #include "WowOffsets.h"
-
-//Added for the json-example
-#define BOOST_SPIRIT_THREADSAFE
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 
 
 DWORD_PTR GetEndSceneAddress(const hadesmem::Process& process)
@@ -86,7 +82,7 @@ DWORD_PTR GetEndSceneAddress(const hadesmem::Process& process)
 		detour_jmp.data(),
 		callerOffset
 	);
-	auto callerAddr = (PVOID)callerOffset;
+	auto callerAddr = (void*)callerOffset;
 	WriteVector(process, callerAddr, detour_jmp);
 	FlushInstructionCache(process, callerAddr, detour_jmp.size());
 
@@ -166,54 +162,10 @@ typedef SimpleWeb::Server<SimpleWeb::HTTP> HttpServer;
 DWORD __stdcall StartHTTPServer(LPVOID args)
 {
 	HADESMEM_DETAIL_TRACE_A("Starting HTTP Server...");
-	HttpServer server(8080, 4);
-	server.resource["^/hello$"]["GET"] = [](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
-		boost::property_tree::ptree pt;
-		pt.put("hello", "world");
-		pt.put("in-game", GameState::Instance().GetIsInGame());
-        pt.put("objects", GameState::Instance().mObjectManager.mObjects.size());
-
-        auto object = GameState::Instance().mObjectManager.GetObject(
-            GameState::Instance().mObjectManager.GetActivePlayerGUID()
-        );
-        if (object)
-        {
-            pt.put("my-guid", object->GetGUID());
-            pt.put("x", object->mPosition.x);
-            pt.put("y", object->mPosition.y);
-            pt.put("z", object->mPosition.z);
-        }
-		std::stringstream ss;
-		boost::property_tree::write_json(ss, pt);
-		auto s = ss.str();
-		response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << s.size() << "\r\n\r\n" << s;
-		response.flush();
-	};
-
-    server.resource["^/ctm$"]["POST"] = [](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
-        boost::property_tree::ptree pt;
-        read_json(request->content, pt);
-        Position destination(
-            pt.get<float>("x"),
-            pt.get<float>("y"),
-            pt.get<float>("z")
-        );
-        WoWPlayer::ClickToMove(destination);
-		response << "HTTP/1.1 201 OK";
-        response.flush();
-    };
-
-    server.resource["^/cast$"]["POST"] = [](HttpServer::Response& response, std::shared_ptr<HttpServer::Request> request) {
-        boost::property_tree::ptree pt;
-        read_json(request->content, pt);
-        WoWPlayer::CastSpellByName(pt.get<std::string>("spell"));
-		response << "HTTP/1.1 201 OK";
-        response.flush();
-    };
-
-	server.start();
+    HttpApi server(8080, 4);
+    server.Start();
 	HADESMEM_DETAIL_TRACE_A("HTTP Server Closed");
-	return 0;
+    return 0;
 }
 
 FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)

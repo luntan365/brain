@@ -10,7 +10,7 @@
 		static const DWORD_PTR offsetAddress = ADDRESS; \
 		static TYPE Read() \
 		{ \
-			return hadesmem::Read<TYPE>(GetThisProcess(), (PVOID)offsetAddress); \
+			return hadesmem::Read<TYPE>(GetThisProcess(), (void*)offsetAddress); \
 		} \
 	};
 
@@ -21,7 +21,7 @@
 		{ \
 			return hadesmem::Read<TYPE>( \
 				GetThisProcess(), \
-				(PVOID)(offsetAddress + PARENT_NAME::offsetAddress)); \
+				(void*)(offsetAddress + PARENT_NAME::offsetAddress)); \
 		} \
 	};
 
@@ -30,17 +30,17 @@
 		static const DWORD_PTR offsetAddress = OFFSET; \
 		static void Read(TYPE* pT) \
 		{ \
-			TYPE::Read(pT, (PVOID)OFFSET); \
+			TYPE::Read(pT, (void*)OFFSET); \
 		} \
 	};
 
 template <typename T>
-void ReadOffsetInto(PVOID addr, T* out)
+void ReadOffsetInto(void* addr, T* out)
 {
 	*out = hadesmem::Read<T>(GetThisProcess(), addr);
 }
 
-PVOID AddOffset(PVOID p, int offset);
+void* AddOffset(void* p, int offset);
 
 class Offsets
 {

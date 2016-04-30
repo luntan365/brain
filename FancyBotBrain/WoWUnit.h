@@ -15,9 +15,9 @@ public:
     static const uintptr_t DATA_RAGE = 0x60;
     static const uintptr_t DATA_TARGET_GUID = 0x40;
 
-    static WoWUnit Read(PVOID pObject);
+    static WoWUnit Read(void* pObject);
 
-    static void Read(WoWUnit* pUnit, PVOID address);
+    static void Read(WoWUnit* pUnit, void* address);
 
 protected:
     int32_t mHealth;

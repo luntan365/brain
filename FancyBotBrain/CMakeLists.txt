@@ -16,6 +16,8 @@ add_definitions(
     -DLIBUDIS86_STATIC
     -DCROW_MSVC_WORKAROUND
     -DDT_POLYREF64
+    -DWINVER=0x0601
+    -D_WIN32_WINNT=0x0601
 )
 
 set(Brain_SRCS
@@ -23,6 +25,7 @@ set(Brain_SRCS
     EndSceneManager.cpp
     FancyBotBrain.cpp
     GameState.cpp
+    HttpApi.cpp
     WoWObject.cpp
     WoWObjectManager.cpp
     WowOffsets.cpp

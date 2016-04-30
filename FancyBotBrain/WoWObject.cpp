@@ -13,14 +13,14 @@ WoWObject::~WoWObject()
 {
 }
 
-WoWObject WoWObject::Read(PVOID pObject)
+WoWObject WoWObject::Read(void* pObject)
 {
     WoWObject obj;
     Read(&obj, pObject);
     return obj;
 }
 
-void WoWObject::Read(WoWObject* pObject, PVOID address)
+void WoWObject::Read(WoWObject* pObject, void* address)
 {
 	ReadOffsetInto(AddOffset(address, GUID_OFFSET), &pObject->mGUID);
     ReadOffsetInto(AddOffset(address, OBJ_POS_X), &pObject->mPosition.x);
@@ -29,9 +29,9 @@ void WoWObject::Read(WoWObject* pObject, PVOID address)
     ReadOffsetInto(AddOffset(address, OBJ_ROTATION), &pObject->mRotation);
 }
 
-PVOID WoWObject::GetDataPointer(PVOID pObject)
+void* WoWObject::GetDataPointer(void* pObject)
 {
-    PVOID pDescriptor;
+    void* pDescriptor;
     ReadOffsetInto(AddOffset(pObject, DATA_PTR_OFFSET), &pDescriptor);
     return pDescriptor;
 }

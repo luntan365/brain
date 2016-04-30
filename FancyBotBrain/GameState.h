@@ -13,12 +13,14 @@ public:
 
     bool GetIsInGame() const;
 
+    WoWObjectManager& ObjectManager();
+
 private:
 	GameState();
 
     void UpdateInGame();
 
-public:
+private:
 	bool mIsInGame;
     WoWObjectManager mObjectManager;
 };

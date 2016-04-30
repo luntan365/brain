@@ -47,3 +47,9 @@ bool GameState::GetIsInGame() const
 {
     return mIsInGame;
 }
+
+
+WoWObjectManager& GameState::ObjectManager()
+{
+    return mObjectManager;
+}

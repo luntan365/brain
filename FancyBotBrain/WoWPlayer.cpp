@@ -7,14 +7,14 @@
 
 using namespace std::chrono;
 
-WoWPlayer WoWPlayer::Read(PVOID pObject)
+WoWPlayer WoWPlayer::Read(void* pObject)
 {
     WoWPlayer player;
     Read(&player, pObject);
     return player;
 }
 
-void WoWPlayer::Read(WoWPlayer* pPlayer, PVOID pObject)
+void WoWPlayer::Read(WoWPlayer* pPlayer, void* pObject)
 {
     WoWObject::Read(pPlayer, pObject);
     WoWUnit::Read(pPlayer, pObject);
@@ -29,11 +29,11 @@ void WoWPlayer::ClickToMove(const Position& destination)
     //milliseconds currentTimeMs = duration_cast<milliseconds>(
         //system_clock::now().time_since_epoch()
     //);
-    hadesmem::Write(GetThisProcess(), (PVOID)0xC4D890, destination.x);
-    hadesmem::Write(GetThisProcess(), (PVOID)0xC4D894, destination.y);
-    hadesmem::Write(GetThisProcess(), (PVOID)0xC4D898, destination.z);
-    //hadesmem::Write(GetThisProcess(), (PVOID)0xC4DA68, currentTimeMs);
-    hadesmem::Write(GetThisProcess(), (PVOID)0xC4D888, 0x4);
+    hadesmem::Write(GetThisProcess(), (void*)0xC4D890, destination.x);
+    hadesmem::Write(GetThisProcess(), (void*)0xC4D894, destination.y);
+    hadesmem::Write(GetThisProcess(), (void*)0xC4D898, destination.z);
+    //hadesmem::Write(GetThisProcess(), (void*)0xC4DA68, currentTimeMs);
+    hadesmem::Write(GetThisProcess(), (void*)0xC4D888, 0x4);
     HADESMEM_DETAIL_TRACE_FORMAT_A("CTM(%f, %f, %f)", destination.x, destination.y, destination.z);
 }
 

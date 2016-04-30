@@ -2,14 +2,14 @@
 
 #include "WowOffsets.h"
 
-WoWUnit WoWUnit::Read(PVOID pObject)
+WoWUnit WoWUnit::Read(void* pObject)
 {
     WoWUnit unit;
     Read(&unit, pObject);
     return unit;
 }
 
-void WoWUnit::Read(WoWUnit* pUnit, PVOID pObject)
+void WoWUnit::Read(WoWUnit* pUnit, void* pObject)
 {
     WoWObject::Read(pUnit, pObject);
     auto pDescriptor = GetDataPointer(pObject);

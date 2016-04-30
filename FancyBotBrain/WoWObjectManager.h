@@ -1,7 +1,5 @@
 #pragma once
 
-#include <hadesmem/process.hpp>
-
 #include <unordered_map>
 #include "WoWObject.h"
 #include "WoWPlayer.h"
@@ -26,15 +24,15 @@ public:
 
 	~WoWObjectManager();
 
-	static void Read(WoWObjectManager* pManager, PVOID basePtr);
+	static void Read(WoWObjectManager* pManager, void* basePtr);
 
-    void ReadObject(PVOID objPtr);
+    void ReadObject(void* objPtr);
 
     uint64_t GetActivePlayerGUID();
 
     WoWPlayer GetPlayer();
 
-    boost::optional<WoWObject> GetObject(uint64_t guid);
+    boost::optional<WoWObject> GetObjectByGuid(uint64_t guid);
 
     void NewObject(uint64_t guid);
 

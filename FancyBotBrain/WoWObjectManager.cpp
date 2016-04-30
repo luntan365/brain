@@ -20,7 +20,7 @@ bool __fastcall ObjectIter(uint64_t guid, void* arg)
 }
 
 void
-WoWObjectManager::Read(WoWObjectManager* pManager, PVOID basePtr)
+WoWObjectManager::Read(WoWObjectManager* pManager, void* basePtr)
 {
     pManager->ClearObjects();
     auto fn = (ObjectManagerEnumVisibleObjects)EnumVisableObjectsAddress;
@@ -28,14 +28,14 @@ WoWObjectManager::Read(WoWObjectManager* pManager, PVOID basePtr)
 }
 
 void
-WoWObjectManager::ReadObject(PVOID basePtr)
+WoWObjectManager::ReadObject(void* basePtr)
 {
     auto obj = WoWObject::Read(basePtr);
     mObjects.emplace(obj.GetGUID(), std::move(obj));
 }
 
 boost::optional<WoWObject>
-WoWObjectManager::GetObject(uint64_t guid)
+WoWObjectManager::GetObjectByGuid(uint64_t guid)
 {
     if (mObjects.find(guid) != mObjects.end())
     {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <boost/optional.hpp>
-#include <hadesmem/process.hpp>
 
 #include "Position.h"
 
@@ -26,16 +25,16 @@ public:
 
 	~WoWObject();
 
-	static WoWObject Read(PVOID pObject);
+	static WoWObject Read(void* pObject);
 
-    static void Read(WoWObject* pObject, PVOID address);
+    static void Read(WoWObject* pObject, void* address);
 
     static boost::optional<WoWObject> GetByGUID(uint64_t guid);
 
 	uint64_t GetGUID() const;
 
 protected:
-    static PVOID GetDataPointer(PVOID pObject);
+    static void* GetDataPointer(void* pObject);
 
 public:
     uint64_t mGUID;
