@@ -112,7 +112,7 @@ HttpApi::Response HttpApi::HandleHello(const Json& input)
     auto& pt = response.body;
     pt.put("hello", "world");
     pt.put("in-game", GameState::Instance().GetIsInGame());
-    pt.put("objects", GameState::Instance().ObjectManager().mObjects.size());
+    pt.put("objects", GameState::Instance().ObjectManager().Objects().size());
 
     auto object = GameState::Instance().ObjectManager().GetObjectByGuid(
         GameState::Instance().ObjectManager().GetActivePlayerGUID()
@@ -120,9 +120,9 @@ HttpApi::Response HttpApi::HandleHello(const Json& input)
     if (object)
     {
         pt.put("my-guid", object->GetGUID());
-        pt.put("x", object->mPosition.x);
-        pt.put("y", object->mPosition.y);
-        pt.put("z", object->mPosition.z);
+        pt.put("x", object->GetPosition().x);
+        pt.put("y", object->GetPosition().y);
+        pt.put("z", object->GetPosition().z);
     }
     response.responseCode = 200;
     return response;
@@ -136,7 +136,7 @@ HttpApi::Response HttpApi::HandleCtm(const Json& input)
         input.get<float>("y"),
         input.get<float>("z")
     );
-    WoWPlayer::ClickToMove(destination);
+    GameState::Instance().ObjectManager().GetPlayer().ClickToMove(destination);
     response.responseCode = 201;
     return response;
 }
@@ -144,7 +144,7 @@ HttpApi::Response HttpApi::HandleCtm(const Json& input)
 HttpApi::Response HttpApi::HandleCast(const Json& input)
 {
     Response response;
-    WoWPlayer::CastSpellByName(input.get<std::string>("spell"));
+    GameState::Instance().ObjectManager().GetPlayer().WoWPlayer::CastSpellByName(input.get<std::string>("spell"));
     response.responseCode = 201;
     return response;
 }

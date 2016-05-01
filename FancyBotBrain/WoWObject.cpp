@@ -22,6 +22,8 @@ WoWObject WoWObject::Read(void* pObject)
 
 void WoWObject::Read(WoWObject* pObject, void* address)
 {
+    pObject->mAddress = address;
+    ReadOffsetInto(AddOffset(address, OBJ_TYPE), &pObject->mType);
 	ReadOffsetInto(AddOffset(address, GUID_OFFSET), &pObject->mGUID);
     ReadOffsetInto(AddOffset(address, OBJ_POS_X), &pObject->mPosition.x);
     ReadOffsetInto(AddOffset(address, OBJ_POS_Y), &pObject->mPosition.y);
@@ -53,4 +55,20 @@ boost::optional<WoWObject> WoWObject::GetByGUID(uint64_t guid)
 uint64_t WoWObject::GetGUID() const
 {
 	return mGUID;
+}
+
+
+const Position& WoWObject::GetPosition() const
+{
+    return mPosition;
+}
+
+WoWObjectType WoWObject::GetType() const
+{
+    return mType;
+}
+
+void* WoWObject::GetAddress() const
+{
+    return mAddress;
 }

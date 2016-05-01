@@ -1,11 +1,14 @@
 #pragma once
 
+#include <mutex>
 #include "WoWObjectManager.h"
 
 class GameState
 {
 public:
 	static GameState& Instance();
+
+    std::unique_lock<std::mutex> GetLock();
 
 	~GameState();
 
@@ -23,5 +26,6 @@ private:
 private:
 	bool mIsInGame;
     WoWObjectManager mObjectManager;
+    std::mutex mMutex;
 };
 

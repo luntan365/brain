@@ -1,5 +1,6 @@
 #pragma once
 
+#include "EndSceneManager.h"
 #include "WoWUnit.h"
 
 class WoWPlayer : public WoWUnit
@@ -13,9 +14,17 @@ public:
 
     static void Read(WoWPlayer* pPlayer, void* address);
 
-    static void ClickToMove(const Position& destination);
+    void ClickToMove(const Position& destination) const;
 
-    static void CastSpellByName(const std::string& name);
+    concurrency::task<void> CastSpellByName(const std::string& name) const;
+
+    concurrency::task<void> SetTarget(uint64_t targetGuid) const;
+
+    concurrency::task<void> Turn(const Position& position) const;
+
+    concurrency::task<void> SendMovementUpdate(uint32_t opcode) const;
+
+    bool IsUnitHostile(const WoWUnit& unit) const;
 
 protected:
     Position mCorpsePosition;

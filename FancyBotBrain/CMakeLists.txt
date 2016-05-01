@@ -25,7 +25,9 @@ set(Brain_SRCS
     EndSceneManager.cpp
     FancyBotBrain.cpp
     GameState.cpp
+    GrindBot.cpp
     HttpApi.cpp
+    Position.cpp
     WoWObject.cpp
     WoWObjectManager.cpp
     WowOffsets.cpp

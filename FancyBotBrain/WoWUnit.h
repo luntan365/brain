@@ -19,6 +19,10 @@ public:
 
     static void Read(WoWUnit* pUnit, void* address);
 
+    bool IsAlive() const;
+
+    uint32_t GetFaction() const;
+
 protected:
     int32_t mHealth;
     int32_t mMaxHealth;

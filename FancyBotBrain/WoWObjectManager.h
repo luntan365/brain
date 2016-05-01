@@ -8,6 +8,7 @@ class WoWObjectManager
 {
 public:
 	typedef std::unordered_map<uint64_t, const WoWObject> ObjectMap;
+	typedef std::unordered_map<uint64_t, const WoWUnit> UnitMap;
 
     typedef bool(__fastcall *EnumCallback)(uint64_t guid, void* arg);
 
@@ -30,7 +31,7 @@ public:
 
     uint64_t GetActivePlayerGUID();
 
-    WoWPlayer GetPlayer();
+    const WoWPlayer& GetPlayer();
 
     boost::optional<WoWObject> GetObjectByGuid(uint64_t guid);
 
@@ -38,7 +39,18 @@ public:
 
     void ClearObjects();
 
-//private:
+    const ObjectMap& Objects() const;
+
+    const UnitMap& Units() const;
+
+private:
+    void NewUnit(const WoWObject& object);
+
+    void NewPlayer(const WoWObject& object);
+
+private:
 	ObjectMap mObjects;
+    UnitMap mUnits;
+    WoWPlayer mPlayer;
 };
 

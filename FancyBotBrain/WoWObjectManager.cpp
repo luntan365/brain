@@ -37,30 +37,89 @@ WoWObjectManager::ReadObject(void* basePtr)
 boost::optional<WoWObject>
 WoWObjectManager::GetObjectByGuid(uint64_t guid)
 {
-    if (mObjects.find(guid) != mObjects.end())
-    {
-        return WoWObject::GetByGUID(guid);
-    }
-    else
-    {
-        return boost::none;
-    }
+    return WoWObject::GetByGUID(guid);
 }
 
 void
 WoWObjectManager::NewObject(uint64_t guid)
 {
-    mObjects.emplace(guid, WoWObject());
+    auto maybeObject = GetObjectByGuid(guid);
+    if (!maybeObject)
+    {
+        return;
+    }
+    auto& object = *maybeObject;
+
+    switch (object.GetType())
+    {
+        case OT_NONE:
+        case OT_ITEM:
+        case OT_CONTAINER:
+        case OT_GAMEOBJ:
+        case OT_DYNOBJ:
+        case OT_CORPSE:
+            break;
+
+        case OT_UNIT:
+            NewUnit(object);
+            return;
+
+        case OT_PLAYER:
+            NewPlayer(object);
+            return;
+    }
+
+    mObjects.emplace(guid, *maybeObject);
+}
+
+void
+WoWObjectManager::NewPlayer(const WoWObject& object)
+{
+    if (object.GetGUID() == GetActivePlayerGUID())
+    {
+        WoWPlayer::Read(&mPlayer, object.GetAddress());
+    }
+    else
+    {
+        auto player = WoWPlayer::Read(object.GetAddress());
+        mUnits.emplace(player.GetGUID(), player);
+    }
+}
+
+void
+WoWObjectManager::NewUnit(const WoWObject& object)
+{
+    auto unit = WoWUnit::Read(object.GetAddress());
+    mUnits.emplace(unit.GetGUID(), unit);
 }
 
 void
 WoWObjectManager::ClearObjects()
 {
     mObjects.clear();
+    mUnits.clear();
 }
 
 uint64_t
 WoWObjectManager::GetActivePlayerGUID()
 {
     return ((ObjectManagerGetActivePlayerGUID)GetActivePlayerGUIDAddress)();
+}
+
+const WoWPlayer&
+WoWObjectManager::GetPlayer()
+{
+    return mPlayer;
+}
+
+const WoWObjectManager::ObjectMap&
+WoWObjectManager::Objects() const
+{
+    return mObjects;
+}
+
+const WoWObjectManager::UnitMap&
+WoWObjectManager::Units() const
+{
+    return mUnits;
 }

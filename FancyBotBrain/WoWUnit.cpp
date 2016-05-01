@@ -13,6 +13,7 @@ void WoWUnit::Read(WoWUnit* pUnit, void* pObject)
 {
     WoWObject::Read(pUnit, pObject);
     auto pDescriptor = GetDataPointer(pObject);
+    ReadOffsetInto(AddOffset(pDescriptor, DATA_HEALTH), &pUnit->mHealth);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_MAX_HEALTH), &pUnit->mMaxHealth);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_FACTION_ID), &pUnit->mFactionId);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_DYNAMIC_FLAGS), &pUnit->mDynamicFlags);
@@ -21,4 +22,14 @@ void WoWUnit::Read(WoWUnit* pUnit, void* pObject)
     ReadOffsetInto(AddOffset(pDescriptor, DATA_MAX_MANA), &pUnit->mMaxMana);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_RAGE), &pUnit->mRage);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_TARGET_GUID), &pUnit->mTargetGUID);
+}
+
+bool WoWUnit::IsAlive() const
+{
+    return mHealth > 0;
+}
+
+uint32_t WoWUnit::GetFaction() const
+{
+    return mFactionId;
 }

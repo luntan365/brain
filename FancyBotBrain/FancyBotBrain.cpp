@@ -17,10 +17,15 @@
 #include "EndSceneManager.h"
 #include "Global.h"
 #include "GameState.h"
+#include "GrindBot.h"
 #include "HttpApi.h"
 #include "WoWPlayer.h"
 #include "WowOffsets.h"
 
+#include <chrono>
+#include <thread>
+
+using namespace std::chrono_literals;
 
 DWORD_PTR GetEndSceneAddress(const hadesmem::Process& process)
 {
@@ -117,12 +122,20 @@ GetEndSceneDetour() noexcept
 
 static int frameIters = 0;
 
+void UpdateGameState()
+{
+    auto& gs = GameState::Instance();
+    auto lock = gs.GetLock();
+    if (lock.try_lock())
+    {
+        gs.Update();
+    }
+}
+
 extern "C" HRESULT WINAPI EndSceneHook(
 	hadesmem::PatchDetourBase* detour,
 	IDirect3DDevice9* device)
 {
-	HADESMEM_DETAIL_TRACE_A("EndScene");
-
 	auto& manager = EndSceneManager::Instance();
 
 	// TODO: Will probably want to give this a certain amount of time to execute
@@ -134,9 +147,7 @@ extern "C" HRESULT WINAPI EndSceneHook(
 
     if (frameIters % 100 == 0)
     {
-        manager.Execute([] {
-            GameState::Instance().Update();
-        });
+        manager.Execute(UpdateGameState);
     }
     frameIters++;
 
@@ -168,6 +179,26 @@ DWORD __stdcall StartHTTPServer(LPVOID args)
     return 0;
 }
 
+DWORD __stdcall StartBot(LPVOID args)
+{
+    HADESMEM_DETAIL_TRACE_A("Starting bot...");
+    GrindBot bot;
+    bot.OnStart();
+    while (true)
+    {
+        std::this_thread::sleep_for(100ms);
+        auto& gs = GameState::Instance();
+        auto lock = gs.GetLock();
+        if (gs.ObjectManager().GetPlayer().GetAddress() == nullptr)
+        {
+            // Object manager hasn't been tick'd yet
+            continue;
+        }
+        lock.lock();
+        bot.Tick(gs);
+    }
+}
+
 FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 {
 	auto& process = GetThisProcess();
@@ -180,8 +211,11 @@ FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 	HookEndScene(process, addr);
 	HADESMEM_DETAIL_TRACE_A("EndScene hooked, lets do this");
 
-	DWORD threadId;
-	auto threadHandle = CreateThread(nullptr, 0, &StartHTTPServer, nullptr, 0, &threadId);
+	DWORD httpThreadId;
+	auto httpThreadHandle = CreateThread(nullptr, 0, &StartHTTPServer, nullptr, 0, &httpThreadId);
+
+    DWORD botThreadId;
+    auto botThreadHandle = CreateThread(nullptr, 0, &StartBot, nullptr, 0, &botThreadId);
 
     return 0;
 }

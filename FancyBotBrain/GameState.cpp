@@ -23,6 +23,13 @@ GameState& GameState::Instance()
 }
 
 
+std::unique_lock<std::mutex> GameState::GetLock()
+{
+    std::unique_lock<std::mutex> lock(mMutex, std::defer_lock);
+    return lock;
+}
+
+
 void GameState::Update()
 {
 	mIsInGame = Offsets::IsInGame::Read();
