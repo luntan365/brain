@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EndSceneManager.h"
+#include "WoWInventory.h"
 #include "WoWUnit.h"
 
 class WoWPlayer : public WoWUnit
@@ -14,9 +15,17 @@ public:
 
     static void Read(WoWPlayer* pPlayer, void* address);
 
-    void ClickToMove(const Position& destination) const;
+    void Reset();
+
+    concurrency::task<void> ClickToMove(const Position& destination) const;
+
+    concurrency::task<void> InteractWith(const WoWUnit& unit) const;
+
+    concurrency::task<void> Loot(const WoWUnit& unit) const;
 
     concurrency::task<void> CastSpellByName(const std::string& name) const;
+
+    concurrency::task<void> SetTarget(const WoWUnit& unit) const;
 
     concurrency::task<void> SetTarget(uint64_t targetGuid) const;
 
@@ -24,8 +33,28 @@ public:
 
     concurrency::task<void> SendMovementUpdate(uint32_t opcode) const;
 
+    concurrency::task<void> AutoLoot() const;
+
     bool IsUnitHostile(const WoWUnit& unit) const;
+
+    bool InRangeOf(const WoWUnit& unit, float distance) const;
+
+    bool IsLooting() const;
+
+    const WoWInventory& GetInventory() const;
+
+    const Position& GetCorpsePosition() const;
+
+private:
+    concurrency::task<void> CTM(
+        uint64_t targetGuid,
+        const Position& destination,
+        uint32_t flag
+    ) const;
 
 protected:
     Position mCorpsePosition;
+    WoWInventory mInventory;
+
+    bool mIsLooting;
 };

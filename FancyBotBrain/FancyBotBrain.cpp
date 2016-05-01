@@ -186,7 +186,7 @@ DWORD __stdcall StartBot(LPVOID args)
     bot.OnStart();
     while (true)
     {
-        std::this_thread::sleep_for(100ms);
+        std::this_thread::sleep_for(500ms);
         auto& gs = GameState::Instance();
         auto lock = gs.GetLock();
         if (gs.ObjectManager().GetPlayer().GetAddress() == nullptr)

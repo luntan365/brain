@@ -3,7 +3,6 @@
 #include "WowOffsets.h"
 
 WoWObjectManager::WoWObjectManager()
-	: mObjects()
 {
 }
 
@@ -53,11 +52,11 @@ WoWObjectManager::NewObject(uint64_t guid)
     switch (object.GetType())
     {
         case OT_NONE:
-        case OT_ITEM:
-        case OT_CONTAINER:
         case OT_GAMEOBJ:
         case OT_DYNOBJ:
         case OT_CORPSE:
+        case OT_ITEM:
+        case OT_CONTAINER:
             break;
 
         case OT_UNIT:
@@ -82,7 +81,7 @@ WoWObjectManager::NewPlayer(const WoWObject& object)
     else
     {
         auto player = WoWPlayer::Read(object.GetAddress());
-        mUnits.emplace(player.GetGUID(), player);
+        mUnits.emplace_back(player);
     }
 }
 
@@ -90,7 +89,7 @@ void
 WoWObjectManager::NewUnit(const WoWObject& object)
 {
     auto unit = WoWUnit::Read(object.GetAddress());
-    mUnits.emplace(unit.GetGUID(), unit);
+    mUnits.emplace_back(unit);
 }
 
 void
@@ -98,6 +97,7 @@ WoWObjectManager::ClearObjects()
 {
     mObjects.clear();
     mUnits.clear();
+    mPlayer.Reset();
 }
 
 uint64_t
@@ -118,7 +118,7 @@ WoWObjectManager::Objects() const
     return mObjects;
 }
 
-const WoWObjectManager::UnitMap&
+const WoWObjectManager::UnitContainer&
 WoWObjectManager::Units() const
 {
     return mUnits;

@@ -6,30 +6,63 @@ void GrindBot::OnStart()
 {
 }
 
-void GrindBot::Tick(GameState& state)
+template <typename F>
+std::vector<WoWUnit> FilterUnits(const std::vector<WoWUnit>& units, F fn)
 {
-    if (!state.GetIsInGame())
-    {
-        return;
-    }
-
-    const auto& units = state.ObjectManager().Units();
-    const auto& me = state.ObjectManager().GetPlayer();
-    const auto currentPosition = me.GetPosition();
-
-    const auto& closestUnit = std::accumulate(
+    std::vector<WoWUnit> out;
+    std::for_each(
         units.begin(),
         units.end(),
-        WoWUnit(),
-        [&currentPosition, &me](const WoWUnit& current, const std::pair<uint64_t, WoWUnit>& id_unit)
+        [&out, &fn](const WoWUnit& unit)
         {
-            const auto& unit = id_unit.second;
-            if (!unit.IsAlive() || !me.IsUnitHostile(unit))
+            if (fn(unit))
             {
-                return current;
+                out.emplace_back(unit);
             }
-            const auto curDist = currentPosition.DistanceSquared(current.GetPosition());
-            const auto testDist = currentPosition.DistanceSquared(unit.GetPosition());
+        }
+    );
+    return out;
+}
+
+std::vector<WoWUnit> GetLootableUnits(const std::vector<WoWUnit>& units)
+{
+    return FilterUnits(
+        units,
+        [](const WoWUnit& unit)
+        {
+            return unit.IsLootable();
+        }
+    );
+}
+
+std::vector<WoWUnit> GetAttackableUnits(
+    const WoWPlayer& me,
+    const std::vector<WoWUnit>& units)
+{
+    return FilterUnits(
+        units,
+        [me](const WoWUnit& unit)
+        {
+            return unit.IsAlive() && me.IsUnitHostile(unit);
+        }
+    );
+}
+
+const WoWUnit GetClosestUnit(
+    const WoWPlayer& me,
+    const std::vector<WoWUnit>& units)
+{
+	WoWUnit baseCase;
+    return std::accumulate(
+        units.begin(),
+        units.end(),
+        baseCase,
+        [&me](const WoWUnit& current, const WoWUnit& unit)
+        {
+            const auto curDist =
+                me.GetPosition().DistanceSquared(current.GetPosition());
+            const auto testDist =
+                me.GetPosition().DistanceSquared(unit.GetPosition());
             if (testDist < curDist)
             {
                 return unit;
@@ -40,15 +73,59 @@ void GrindBot::Tick(GameState& state)
             }
         }
     );
+}
 
-    me.SetTarget(closestUnit.GetGUID());
-    if (currentPosition.Distance(closestUnit.GetPosition()) < 25.0)
+void MoveTo(const WoWPlayer& me, const Position& position)
+{
+    me.ClickToMove(position);
+}
+
+void GrindBot::Tick(GameState& state)
+{
+    if (!state.GetIsInGame())
     {
-        me.Turn(closestUnit.GetPosition());
-        me.CastSpellByName("Fireball");
+        return;
+    }
+    const auto& me = state.ObjectManager().GetPlayer();
+    const auto& units = state.ObjectManager().Units();
+    const auto currentPosition = me.GetPosition();
+
+    const auto lootableUnits = GetLootableUnits(units);
+    if (!me.IsAlive())
+    {
+        MoveTo(me, me.GetCorpsePosition());
+    }
+    else if (!lootableUnits.empty() && !me.GetInventory().IsFull())
+    {
+        const auto& closestUnit = GetClosestUnit(me, lootableUnits);
+        me.SetTarget(closestUnit);
+        if (me.IsLooting())
+        {
+            me.AutoLoot();
+        }
+        else if (me.InRangeOf(closestUnit, 3.0f))
+        {
+            me.Loot(closestUnit);
+        }
+        else
+        {
+            MoveTo(me, closestUnit.GetPosition());
+        }
     }
     else
     {
-        me.ClickToMove(closestUnit.GetPosition());
+        const auto& attackableUnits = GetAttackableUnits(me, units);
+        const auto closestUnit = GetClosestUnit(me, attackableUnits);
+
+        me.SetTarget(closestUnit);
+        if (currentPosition.Distance(closestUnit.GetPosition()) < 25.0)
+        {
+            me.Turn(closestUnit.GetPosition());
+            me.CastSpellByName("Fireball");
+        }
+        else
+        {
+            MoveTo(me, closestUnit.GetPosition());
+        }
     }
 }

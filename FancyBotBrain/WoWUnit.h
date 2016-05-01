@@ -21,6 +21,8 @@ public:
 
     bool IsAlive() const;
 
+    bool IsLootable() const;
+
     uint32_t GetFaction() const;
 
 protected:

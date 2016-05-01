@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include "WoWInventory.h"
 #include "WoWObject.h"
 #include "WoWPlayer.h"
 
@@ -8,7 +9,7 @@ class WoWObjectManager
 {
 public:
 	typedef std::unordered_map<uint64_t, const WoWObject> ObjectMap;
-	typedef std::unordered_map<uint64_t, const WoWUnit> UnitMap;
+	typedef std::vector<WoWUnit> UnitContainer;
 
     typedef bool(__fastcall *EnumCallback)(uint64_t guid, void* arg);
 
@@ -41,7 +42,7 @@ public:
 
     const ObjectMap& Objects() const;
 
-    const UnitMap& Units() const;
+    const UnitContainer& Units() const;
 
 private:
     void NewUnit(const WoWObject& object);
@@ -49,8 +50,7 @@ private:
     void NewPlayer(const WoWObject& object);
 
 private:
-	ObjectMap mObjects;
-    UnitMap mUnits;
     WoWPlayer mPlayer;
+	ObjectMap mObjects;
+    UnitContainer mUnits;
 };
-

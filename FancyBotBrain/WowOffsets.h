@@ -34,13 +34,19 @@
 		} \
 	};
 
+void* AddOffset(void* p, int offset);
+
 template <typename T>
 void ReadOffsetInto(void* addr, T* out)
 {
 	*out = hadesmem::Read<T>(GetThisProcess(), addr);
 }
 
-void* AddOffset(void* p, int offset);
+template <typename T>
+void ReadOffsetInto(void* base, uintptr_t offset, T* out)
+{
+	ReadOffsetInto(AddOffset(base, offset), out);
+}
 
 class Offsets
 {
@@ -51,6 +57,13 @@ public:
 
 	DEFINE_STATIC_OFFSET(CurrentTargetGUID, 0x74e2d8, uint64_t);
 	DEFINE_STATIC_OFFSET(PlayerGUID, 0x741e30, uint64_t);
+};
+
+struct StaticFields
+{
+	static constexpr void* STATIC_CORPSE_X = (void*)0xB4E284;
+	static constexpr void* STATIC_CORPSE_Y = (void*)0xB4E288;
+	static constexpr void* STATIC_CORPSE_Z = (void*)0xB4E28C;
 };
 
 struct ObjectFields
@@ -401,4 +414,32 @@ struct CorpseFields
 	static constexpr uintptr_t CORPSE_FIELD_DYNAMIC_FLAGS = ObjectFields::OBJECT_END + 0x78;
 	static constexpr uintptr_t CORPSE_FIELD_PAD = ObjectFields::OBJECT_END + 0x7C;
 	static constexpr uintptr_t CORPSE_END = ObjectFields::OBJECT_END + 0x80;
+};
+
+enum EquipLoc
+{
+    EQUIP_LOC_HEAD = 0,
+    EQUIP_LOC_NECK,
+    EQUIP_LOC_SHOULDER,
+    EQUIP_LOC_SHIRT,
+    EQUIP_LOC_CHEST,
+    EQUIP_LOC_WAIST,
+    EQUIP_LOC_LEGS,
+    EQUIP_LOC_FEET,
+    EQUIP_LOC_WRISTS,
+    EQUIP_LOC_HANDS,
+    EQUIP_LOC_FINGER_1,
+    EQUIP_LOC_FINGER_2,
+    EQUIP_LOC_TRINKET_1,
+    EQUIP_LOC_TRINKET_2,
+    EQUIP_LOC_BACK,
+    EQUIP_LOC_MAINHAND,
+    EQUIP_LOC_OFFHAND,
+    EQUIP_LOC_RANGED,
+    EQUIP_LOC_TABARD,
+    EQUIP_LOC_BAG_1,
+    EQUIP_LOC_BAG_2,
+    EQUIP_LOC_BAG_3,
+    EQUIP_LOC_BAG_4,
+    EQUIP_LOC_SLOTS_TOTAL
 };

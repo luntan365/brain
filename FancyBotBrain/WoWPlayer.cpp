@@ -15,23 +15,78 @@ WoWPlayer WoWPlayer::Read(void* pObject)
     return player;
 }
 
+bool GetIsLooting(void* pObject)
+{
+    typedef bool (__thiscall *Player_IsLooting)(void*);
+    return ((Player_IsLooting)0x006126B0)(pObject);
+}
+
 void WoWPlayer::Read(WoWPlayer* pPlayer, void* pObject)
 {
     WoWObject::Read(pPlayer, pObject);
     WoWUnit::Read(pPlayer, pObject);
     auto pDescriptor = GetDataPointer(pObject);
-    ReadOffsetInto(AddOffset(pDescriptor, DATA_CORPSE_X), &pPlayer->mCorpsePosition.x);
-    ReadOffsetInto(AddOffset(pDescriptor, DATA_CORPSE_Y), &pPlayer->mCorpsePosition.y);
-    ReadOffsetInto(AddOffset(pDescriptor, DATA_CORPSE_Z), &pPlayer->mCorpsePosition.z);
+    ReadOffsetInto(StaticFields::STATIC_CORPSE_X, &pPlayer->mCorpsePosition.x);
+    ReadOffsetInto(StaticFields::STATIC_CORPSE_Y, &pPlayer->mCorpsePosition.y);
+    ReadOffsetInto(StaticFields::STATIC_CORPSE_Z, &pPlayer->mCorpsePosition.z);
+
+    for (uint8_t backpackIdx = 0; backpackIdx < 16; backpackIdx++)
+    {
+        uint64_t itemGuid;
+        ReadOffsetInto(
+            pDescriptor,
+            PlayerFields::PLAYER_FIELD_PACK_SLOT_1 + backpackIdx * 8,
+            &itemGuid
+        );
+        pPlayer->mInventory.SetBackpackItem(backpackIdx, itemGuid);
+    }
+
+    for (auto bagIdx = 0; bagIdx < 4; bagIdx++)
+    {
+        uint64_t bagGuid;
+        auto offset = PlayerFields::PLAYER_FIELD_INV_SLOT_HEAD
+            + (EQUIP_LOC_BAG_1 + bagIdx) * 8;
+        ReadOffsetInto(pDescriptor, offset, &bagGuid);
+        pPlayer->mInventory.AddBag(bagGuid);
+    }
+
+    pPlayer->mIsLooting = GetIsLooting(pObject);
 }
 
-void WoWPlayer::ClickToMove(const Position& destination) const
+void WoWPlayer::Reset()
 {
-    hadesmem::Write(GetThisProcess(), (void*)0xC4D890, destination.x);
-    hadesmem::Write(GetThisProcess(), (void*)0xC4D894, destination.y);
-    hadesmem::Write(GetThisProcess(), (void*)0xC4D898, destination.z);
-    hadesmem::Write(GetThisProcess(), (void*)0xC4D888, 0x4);
-    HADESMEM_DETAIL_TRACE_FORMAT_A("CTM(%f, %f, %f)", destination.x, destination.y, destination.z);
+    mInventory.Clear();
+}
+
+concurrency::task<void>
+WoWPlayer::CTM(uint64_t targetGuid, const Position& destination, uint32_t flag) const
+{
+    typedef bool (__thiscall *ClickToMoveFn)
+        (void*, const uint32_t, const uint64_t*, const void*, float);
+    auto address = GetAddress();
+    return EndSceneManager::Instance()
+        .Execute([address, flag, destination, targetGuid] {
+            auto fn = ((ClickToMoveFn)0x611130);
+            fn(address, flag, &targetGuid, (const void*)&destination.x, 0.0);
+        });
+}
+
+concurrency::task<void>
+WoWPlayer::ClickToMove(const Position& destination) const
+{
+    return CTM(0, destination, 0x4);
+}
+
+concurrency::task<void>
+WoWPlayer::InteractWith(const WoWUnit& unit) const
+{
+    return CTM(unit.GetGUID(), unit.GetPosition(), 0x5);
+}
+
+concurrency::task<void>
+WoWPlayer::Loot(const WoWUnit& unit) const
+{
+    return CTM(unit.GetGUID(), unit.GetPosition(), 0x6);
 }
 
 concurrency::task<void>
@@ -57,6 +112,12 @@ concurrency::task<void>
 WoWPlayer::CastSpellByName(const std::string& name) const
 {
     return ExecuteLua("CastSpellByName('" + name + "')");
+}
+
+concurrency::task<void>
+WoWPlayer::SetTarget(const WoWUnit& unit) const
+{
+    return SetTarget(unit.GetGUID());
 }
 
 concurrency::task<void>
@@ -103,8 +164,41 @@ WoWPlayer::SendMovementUpdate(uint32_t opcode) const
     });
 }
 
+concurrency::task<void>
+WoWPlayer::AutoLoot() const
+{
+    typedef void (*DoAutoLoot)();
+    return EndSceneManager::Instance().Execute([] {
+        ((DoAutoLoot)0x4C1FA0)();
+    });
+}
+
 bool
 WoWPlayer::IsUnitHostile(const WoWUnit& unit) const
 {
     return unit.GetFaction() != 14 && GetFaction() != unit.GetFaction();
+}
+
+bool
+WoWPlayer::InRangeOf(const WoWUnit& unit, float distance) const
+{
+    return GetPosition().Distance(unit.GetPosition()) <= distance;
+}
+
+bool
+WoWPlayer::IsLooting() const
+{
+    return mIsLooting;
+}
+
+const WoWInventory&
+WoWPlayer::GetInventory() const
+{
+    return mInventory;
+}
+
+const Position&
+WoWPlayer::GetCorpsePosition() const
+{
+    return mCorpsePosition;
 }

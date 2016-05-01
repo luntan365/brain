@@ -29,6 +29,11 @@ bool WoWUnit::IsAlive() const
     return mHealth > 0;
 }
 
+bool WoWUnit::IsLootable() const
+{
+    return (mDynamicFlags & 0x1) == 0x1;
+}
+
 uint32_t WoWUnit::GetFaction() const
 {
     return mFactionId;

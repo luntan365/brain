@@ -28,6 +28,9 @@ set(Brain_SRCS
     GrindBot.cpp
     HttpApi.cpp
     Position.cpp
+    WoWContainer.cpp
+    WoWInventory.cpp
+    WoWItem.cpp
     WoWObject.cpp
     WoWObjectManager.cpp
     WowOffsets.cpp
