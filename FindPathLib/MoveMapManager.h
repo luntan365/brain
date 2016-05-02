@@ -1,11 +1,5 @@
 #pragma once
 
-#ifdef FINDPATHLIB_EXPORTS
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT __declspec(dllimport)
-#endif
-
 #include "MoveMap.h"
 
 #include <cstdint>
@@ -31,6 +25,10 @@ public:
     MoveMapManager();
 
     void Initialize(const std::string& path);
+
+    dtNavMesh* GetNavMesh(uint32_t mapId);
+
+    dtNavMeshQuery* GetNavMeshQuery(uint32_t mapId);
 
 private:
     void LoadMaps(const std::string& path);

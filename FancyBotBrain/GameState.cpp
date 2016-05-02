@@ -10,11 +10,9 @@ GameState::GameState()
 {
 }
 
-
 GameState::~GameState()
 {
 }
-
 
 GameState& GameState::Instance()
 {
@@ -22,13 +20,11 @@ GameState& GameState::Instance()
 	return state;
 }
 
-
 std::unique_lock<std::mutex> GameState::GetLock()
 {
     std::unique_lock<std::mutex> lock(mMutex, std::defer_lock);
     return lock;
 }
-
 
 void GameState::Update()
 {
@@ -42,7 +38,6 @@ void GameState::Update()
 
 	}
 }
-
 
 void GameState::UpdateInGame()
 {

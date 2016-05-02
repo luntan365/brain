@@ -2,17 +2,18 @@
 
 #include <cmath>
 
-Position::Position(float xx, float yy, float zz)
-    : x(xx)
-    , y(yy)
-    , z(zz)
+Position::Position()
+    : Position(0, 0, 0)
 {
 }
 
-Position::Position()
-    : x(0)
-    , y(0)
-    , z(0)
+Position::Position(float x, float y, float z)
+    : Vector3(x, y, z)
+{
+}
+
+Position::Position(const Vector3& v)
+    : Vector3(v)
 {
 }
 

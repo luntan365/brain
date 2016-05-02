@@ -1,6 +1,5 @@
 
 add_definitions(
-    -DFANCYBOTBRAIN_EXPORTS
     -DWIN32
     -D_WINDOWS
     -D_USRDLL
@@ -10,37 +9,21 @@ add_definitions(
     -D_UNICODE
     -D_CRT_SECURE_NO_WARNINGS
     -D_SCL_SECURE_NO_WARNINGS
-    -DASMJIT_BUILD_X86
-    -DASMJIT_BUILD_X64
-    -DASMJIT_STATIC
-    -DLIBUDIS86_STATIC
     -DCROW_MSVC_WORKAROUND
     -DDT_POLYREF64
     -DWINVER=0x0601
     -D_WIN32_WINNT=0x0601
 )
 
-set(Brain_SRCS
-    dllmain.cpp
-    EndSceneManager.cpp
-    FancyBotBrain.cpp
-    GameState.cpp
-    GrindBot.cpp
-    HttpApi.cpp
-    Position.cpp
-    WoWContainer.cpp
-    WoWInventory.cpp
-    WoWItem.cpp
-    WoWObject.cpp
-    WoWObjectManager.cpp
-    WowOffsets.cpp
-    WoWPlayer.cpp
-    WoWUnit.cpp
+set(FindPathLib_SRCS
+    MoveMap.cpp
+    MoveMapManager.cpp
+    MoveMapTile.cpp
+    PathFinder.cpp
 )
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/FindPathLib
   ${CMAKE_SOURCE_DIR}/dep/detour
   ${CMAKE_SOURCE_DIR}/dep/asmjit/src
   ${CMAKE_SOURCE_DIR}/dep/udis86
@@ -49,15 +32,12 @@ include_directories(
   ${Boost_INCLUDE_DIR}
 )
 
-add_library(FancyBotBrain SHARED
-  ${Brain_SRCS}
+add_library(FindPathLib STATIC
+    ${FindPathLib_SRCS}
 )
 
 target_link_libraries(
-    FancyBotBrain
     FindPathLib
-    asmjit
+    detour
     ${Boost_LIBRARIES}
-    ${SHLWAPI}
-    ${UDIS}
 )

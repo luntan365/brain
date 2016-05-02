@@ -42,4 +42,5 @@ add_subdirectory(dep)
 
 add_subdirectory(FancyBotBrain)
 add_subdirectory(FancyBotInjector)
-
+add_subdirectory(FindPathLib)
+add_subdirectory(FindPathLibHarness)

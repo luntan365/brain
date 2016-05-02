@@ -2,6 +2,9 @@
 #include "MoveMapManager.h"
 
 #include "easylogging++.h"
+
+INITIALIZE_EASYLOGGINGPP
+
 #include <iterator>
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptors.hpp>
@@ -62,7 +65,7 @@ void MoveMapManager::LoadMapTiles(const std::string& path)
 void MoveMapManager::LoadMapFromFile(const std::string& spath)
 {
 	boost::filesystem::path path(spath);
-    int mapId = std::stoi(path.stem().string());
+    auto mapId = (uint32_t)std::stoul(path.stem().string());
     std::ifstream input(path.string());
     dtNavMeshParams params;
     input.read((char*)&params, sizeof(dtNavMeshParams));
@@ -95,7 +98,7 @@ void MoveMapManager::LoadMapTileFromFile(const std::string& spath)
     input.read((char*)&tileHeader, sizeof(tileHeader));
 
     unsigned int byteCount = (unsigned int)tileHeader.size;
-    unsigned char* data = (unsigned char*)dtAlloc(byteCount, DT_ALLOC_PERM);	
+    unsigned char* data = (unsigned char*)dtAlloc(byteCount, DT_ALLOC_PERM);
 	input.read((char*)data, tileHeader.size);
 
     auto& mmap = mMoveMaps.at(mapId);
@@ -105,4 +108,28 @@ void MoveMapManager::LoadMapTileFromFile(const std::string& spath)
     MoveMapTile tile(mapId, x, y, tileRef);
     mmap.LoadTile(tile);
     LOG(INFO) << "Loaded " << mapId << " (" << x << ", " << y << ")";
+}
+
+dtNavMesh* MoveMapManager::GetNavMesh(uint32_t mapId)
+{
+    if (mMoveMaps.find(mapId) == mMoveMaps.end())
+    {
+        return nullptr;
+    }
+    else
+    {
+        return mMoveMaps.at(mapId).GetNavMesh();
+    }
+}
+
+dtNavMeshQuery* MoveMapManager::GetNavMeshQuery(uint32_t mapId)
+{
+    if (mMoveMaps.find(mapId) == mMoveMaps.end())
+    {
+        return nullptr;
+    }
+    else
+    {
+        return mMoveMaps.at(mapId).GetNavMeshQuery();
+    }
 }

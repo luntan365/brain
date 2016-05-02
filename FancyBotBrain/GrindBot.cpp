@@ -1,9 +1,19 @@
 #include "GrindBot.h"
 
 #include <numeric>
+#include "hadesmem/detail/trace.hpp"
+
+GrindBot::GrindBot()
+    : mMoveMapManager()
+    , mPathFinder(&mMoveMapManager, 0)
+    , mCurrentMapId(0)
+{
+}
 
 void GrindBot::OnStart()
 {
+    mMoveMapManager.Initialize("C:\\mmaps");
+    mPathFinder = PathFinder(&mMoveMapManager, 0);
 }
 
 template <typename F>
@@ -75,9 +85,21 @@ const WoWUnit GetClosestUnit(
     );
 }
 
-void MoveTo(const WoWPlayer& me, const Position& position)
+void GrindBot::MoveTo(const WoWPlayer& me, const Position& position)
 {
-    me.ClickToMove(position);
+    HADESMEM_DETAIL_TRACE_A("Calculating path...");
+    //if (position == mPathFinder.GetEndPosition())
+    //{
+        //return;
+    //}
+    mPathFinder.Calculate(me.GetPosition(), position);
+    const auto& path = mPathFinder.GetPath();
+    if (path.size() > 1)
+    {
+        const Position position(path.at(1));
+        me.ClickToMove(position);
+        HADESMEM_DETAIL_TRACE_A("MOVING");
+    }
 }
 
 void GrindBot::Tick(GameState& state)
@@ -87,6 +109,8 @@ void GrindBot::Tick(GameState& state)
         return;
     }
     const auto& me = state.ObjectManager().GetPlayer();
+    // TODO
+    // UpdateCurrentMap(me)
     const auto& units = state.ObjectManager().Units();
     const auto currentPosition = me.GetPosition();
 
