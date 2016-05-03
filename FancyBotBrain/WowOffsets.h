@@ -68,7 +68,7 @@ struct StaticFields
 
 struct ObjectFields
 {
-	static constexpr uintptr_t OBJECT_END = 0x8;
+	static constexpr uintptr_t OBJECT_END = 0x18;
 };
 
 struct UnitFields

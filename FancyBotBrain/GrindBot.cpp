@@ -5,7 +5,7 @@
 
 GrindBot::GrindBot()
     : mMoveMapManager()
-    , mPathFinder(&mMoveMapManager, 0)
+    , mPathTracker(&mMoveMapManager, WoWPlayer(), 0.0)
     , mCurrentMapId(0)
 {
 }
@@ -13,7 +13,7 @@ GrindBot::GrindBot()
 void GrindBot::OnStart()
 {
     mMoveMapManager.Initialize("C:\\mmaps");
-    mPathFinder = PathFinder(&mMoveMapManager, 0);
+    mPathTracker = PathTracker(&mMoveMapManager, WoWPlayer(), 10.0);
 }
 
 template <typename F>
@@ -53,7 +53,7 @@ std::vector<WoWUnit> GetAttackableUnits(
         units,
         [me](const WoWUnit& unit)
         {
-            return unit.IsAlive() && me.IsUnitHostile(unit);
+            return unit.IsAlive();
         }
     );
 }
@@ -87,19 +87,7 @@ const WoWUnit GetClosestUnit(
 
 void GrindBot::MoveTo(const WoWPlayer& me, const Position& position)
 {
-    HADESMEM_DETAIL_TRACE_A("Calculating path...");
-    //if (position == mPathFinder.GetEndPosition())
-    //{
-        //return;
-    //}
-    mPathFinder.Calculate(me.GetPosition(), position);
-    const auto& path = mPathFinder.GetPath();
-    if (path.size() > 1)
-    {
-        const Position position(path.at(1));
-        me.ClickToMove(position);
-        HADESMEM_DETAIL_TRACE_A("MOVING");
-    }
+    mPathTracker.SetDestination(position);
 }
 
 void GrindBot::Tick(GameState& state)
@@ -109,6 +97,8 @@ void GrindBot::Tick(GameState& state)
         return;
     }
     const auto& me = state.ObjectManager().GetPlayer();
+    mPathTracker.SetPlayer(me);
+
     // TODO
     // UpdateCurrentMap(me)
     const auto& units = state.ObjectManager().Units();
@@ -117,7 +107,18 @@ void GrindBot::Tick(GameState& state)
     const auto lootableUnits = GetLootableUnits(units);
     if (!me.IsAlive())
     {
-        MoveTo(me, me.GetCorpsePosition());
+        me.ReleaseSpirit();
+    }
+    else if (me.IsGhost())
+    {
+        if (me.InRangeOf(me.GetCorpsePosition(), 20.0))
+        {
+            me.ReviveAtCorpse();
+        }
+        else
+        {
+            MoveTo(me, me.GetCorpsePosition());
+        }
     }
     else if (!lootableUnits.empty() && !me.GetInventory().IsFull())
     {
@@ -138,7 +139,8 @@ void GrindBot::Tick(GameState& state)
     }
     else
     {
-        const auto& attackableUnits = GetAttackableUnits(me, units);
+        const auto& enemyUnits = state.ObjectManager().GetEnemyUnits();
+        const auto& attackableUnits = GetAttackableUnits(me, enemyUnits);
         const auto closestUnit = GetClosestUnit(me, attackableUnits);
 
         me.SetTarget(closestUnit);
@@ -152,4 +154,5 @@ void GrindBot::Tick(GameState& state)
             MoveTo(me, closestUnit.GetPosition());
         }
     }
+    mPathTracker.Tick();
 }

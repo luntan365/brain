@@ -17,7 +17,7 @@ Position::Position(const Vector3& v)
 {
 }
 
-float Position::DistanceSquared(const Position& other) const
+float Position::DistanceSquared(const Vector3& other) const
 {
     auto dx = other.x - x;
     auto dy = other.y - y;
@@ -25,8 +25,12 @@ float Position::DistanceSquared(const Position& other) const
     return dx * dx + dy * dy + dz * dz;
 }
 
-float Position::Distance(const Position& other) const
+float Position::Distance(const Vector3& other) const
 {
     return sqrt(DistanceSquared(other));
 }
 
+bool Position::operator==(const Vector3& v) const
+{
+    return v.x == x && v.y == y && v.z == z;
+}

@@ -18,6 +18,7 @@ add_definitions(
     -DDT_POLYREF64
     -DWINVER=0x0601
     -D_WIN32_WINNT=0x0601
+    -D_VARIADIC_MAX=10
 )
 
 set(Brain_SRCS
@@ -27,6 +28,7 @@ set(Brain_SRCS
     GameState.cpp
     GrindBot.cpp
     HttpApi.cpp
+    PathTracker.cpp
     Position.cpp
     WoWContainer.cpp
     WoWInventory.cpp

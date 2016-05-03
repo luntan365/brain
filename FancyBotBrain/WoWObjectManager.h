@@ -44,13 +44,22 @@ public:
 
     const UnitContainer& Units() const;
 
+    const UnitContainer& GetEnemyUnits() const;
+
 private:
     void NewUnit(const WoWObject& object);
 
     void NewPlayer(const WoWObject& object);
 
+    uint32_t GetUnitReaction(const WoWUnit& unit) const;
+
+    bool IsUnitEnemy(const WoWUnit& unit) const;
+
+    bool IsUnitFriendly(const WoWUnit& unit) const;
+
 private:
     WoWPlayer mPlayer;
 	ObjectMap mObjects;
     UnitContainer mUnits;
+    UnitContainer mEnemyUnits;
 };

@@ -17,7 +17,7 @@ public:
 
     void Reset();
 
-    concurrency::task<void> ClickToMove(const Position& destination) const;
+    concurrency::task<void> ClickToMove(const Vector3& destination) const;
 
     concurrency::task<void> InteractWith(const WoWUnit& unit) const;
 
@@ -29,13 +29,19 @@ public:
 
     concurrency::task<void> SetTarget(uint64_t targetGuid) const;
 
-    concurrency::task<void> Turn(const Position& position) const;
+    concurrency::task<void> Turn(const Vector3& position) const;
 
     concurrency::task<void> SendMovementUpdate(uint32_t opcode) const;
 
     concurrency::task<void> AutoLoot() const;
 
+    concurrency::task<void> ReleaseSpirit() const;
+
+    concurrency::task<void> ReviveAtCorpse() const;
+
     bool IsUnitHostile(const WoWUnit& unit) const;
+
+    bool InRangeOf(const Vector3& v, float distance) const;
 
     bool InRangeOf(const WoWUnit& unit, float distance) const;
 
@@ -45,10 +51,12 @@ public:
 
     const Position& GetCorpsePosition() const;
 
+    bool IsGhost() const;
+
 private:
     concurrency::task<void> CTM(
         uint64_t targetGuid,
-        const Position& destination,
+        const Vector3& destination,
         uint32_t flag
     ) const;
 
@@ -57,4 +65,5 @@ protected:
     WoWInventory mInventory;
 
     bool mIsLooting;
+    bool mIsGhost;
 };

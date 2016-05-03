@@ -397,7 +397,6 @@ void PathFinder::BuildShortcut()
 {
     LOG(INFO) << "Building shortcut...";
     Clear();
-    mPathPoints.resize(2);
     mPathPoints.emplace_back(GetStartPosition());
     mPathPoints.emplace_back(GetActualEndPosition());
     mType = PATHFIND_SHORTCUT;

@@ -89,6 +89,10 @@ void
 WoWObjectManager::NewUnit(const WoWObject& object)
 {
     auto unit = WoWUnit::Read(object.GetAddress());
+    if (IsUnitEnemy(unit))
+    {
+        mEnemyUnits.push_back(unit);
+    }
     mUnits.emplace_back(unit);
 }
 
@@ -97,6 +101,7 @@ WoWObjectManager::ClearObjects()
 {
     mObjects.clear();
     mUnits.clear();
+    mEnemyUnits.clear();
     mPlayer.Reset();
 }
 
@@ -104,6 +109,27 @@ uint64_t
 WoWObjectManager::GetActivePlayerGUID()
 {
     return ((ObjectManagerGetActivePlayerGUID)GetActivePlayerGUIDAddress)();
+}
+
+uint32_t
+WoWObjectManager::GetUnitReaction(const WoWUnit& unit) const
+{
+    typedef uint32_t (__thiscall *Unit_GetUnitReaction)(void*, void*);
+    auto thisaddr = mPlayer.GetAddress();
+    auto addr = unit.GetAddress();
+    return ((Unit_GetUnitReaction)0x6061E0)(thisaddr, addr);
+}
+
+bool
+WoWObjectManager::IsUnitEnemy(const WoWUnit& unit) const
+{
+    return GetUnitReaction(unit) <= 3;
+}
+
+bool
+WoWObjectManager::IsUnitFriendly(const WoWUnit& unit) const
+{
+    return !IsUnitEnemy(unit);
 }
 
 const WoWPlayer&
@@ -122,4 +148,10 @@ const WoWObjectManager::UnitContainer&
 WoWObjectManager::Units() const
 {
     return mUnits;
+}
+
+const WoWObjectManager::UnitContainer&
+WoWObjectManager::GetEnemyUnits() const
+{
+    return mEnemyUnits;
 }

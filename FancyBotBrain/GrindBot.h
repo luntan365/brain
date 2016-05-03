@@ -2,7 +2,7 @@
 
 #include "IBot.h"
 #include "MoveMapManager.h"
-#include "PathFinder.h"
+#include "PathTracker.h"
 
 
 class GrindBot : public IBot
@@ -18,6 +18,6 @@ private:
     void MoveTo(const WoWPlayer& me, const Position& p);
 
     MoveMapManager mMoveMapManager;
-    PathFinder mPathFinder;
+    PathTracker mPathTracker;
     uint32_t mCurrentMapId;
 };

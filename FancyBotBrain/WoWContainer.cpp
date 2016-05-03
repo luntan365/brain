@@ -25,7 +25,7 @@ void WoWContainer::Read(WoWContainer* pContainer, void* pObject)
         ReadOffsetInto(
             pDescriptor,
             itemOffset,
-            &pContainer->mNumSlots
+            &itemId
         );
         if (itemId != 0)
         {

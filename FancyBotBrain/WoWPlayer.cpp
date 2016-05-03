@@ -59,7 +59,7 @@ void WoWPlayer::Reset()
 }
 
 concurrency::task<void>
-WoWPlayer::CTM(uint64_t targetGuid, const Position& destination, uint32_t flag) const
+WoWPlayer::CTM(uint64_t targetGuid, const Vector3& destination, uint32_t flag) const
 {
     typedef bool (__thiscall *ClickToMoveFn)
         (void*, const uint32_t, const uint64_t*, const void*, float);
@@ -67,12 +67,13 @@ WoWPlayer::CTM(uint64_t targetGuid, const Position& destination, uint32_t flag) 
     return EndSceneManager::Instance()
         .Execute([address, flag, destination, targetGuid] {
             auto fn = ((ClickToMoveFn)0x611130);
-            fn(address, flag, &targetGuid, (const void*)&destination.x, 0.0);
+            auto pDest = (void*)&destination.x;
+            fn(address, flag, &targetGuid, pDest, 5.0);
         });
 }
 
 concurrency::task<void>
-WoWPlayer::ClickToMove(const Position& destination) const
+WoWPlayer::ClickToMove(const Vector3& destination) const
 {
     return CTM(0, destination, 0x4);
 }
@@ -86,7 +87,13 @@ WoWPlayer::InteractWith(const WoWUnit& unit) const
 concurrency::task<void>
 WoWPlayer::Loot(const WoWUnit& unit) const
 {
-    return CTM(unit.GetGUID(), unit.GetPosition(), 0x6);
+    typedef void (__thiscall *OnRightClickFn)(void*, bool);
+    auto addr = unit.GetAddress();
+    return EndSceneManager::Instance()
+        .Execute([addr] {
+            auto fn = ((OnRightClickFn)0x60BEA0);
+            fn(addr, 1);
+        });
 }
 
 concurrency::task<void>
@@ -130,7 +137,7 @@ WoWPlayer::SetTarget(uint64_t targetGuid) const
 }
 
 concurrency::task<void>
-WoWPlayer::Turn(const Position& target) const
+WoWPlayer::Turn(const Vector3& target) const
 {
     auto cur = GetPosition();
     auto angle = atan2(target.y - cur.y, target.x - cur.x);
@@ -173,6 +180,18 @@ WoWPlayer::AutoLoot() const
     });
 }
 
+concurrency::task<void>
+WoWPlayer::ReleaseSpirit() const
+{
+    return ExecuteLua("RepopMe()");
+}
+
+concurrency::task<void>
+WoWPlayer::ReviveAtCorpse() const
+{
+    return ExecuteLua("RetrieveCorpse()");
+}
+
 bool
 WoWPlayer::IsUnitHostile(const WoWUnit& unit) const
 {
@@ -180,9 +199,15 @@ WoWPlayer::IsUnitHostile(const WoWUnit& unit) const
 }
 
 bool
+WoWPlayer::InRangeOf(const Vector3& v, float distance) const
+{
+    return GetPosition().Distance(v) <= distance;
+}
+
+bool
 WoWPlayer::InRangeOf(const WoWUnit& unit, float distance) const
 {
-    return GetPosition().Distance(unit.GetPosition()) <= distance;
+    return InRangeOf(unit.GetPosition(), distance);
 }
 
 bool
@@ -201,4 +226,12 @@ const Position&
 WoWPlayer::GetCorpsePosition() const
 {
     return mCorpsePosition;
+}
+
+bool
+WoWPlayer::IsGhost() const
+{
+    return mCorpsePosition.x != 0
+        || mCorpsePosition.y != 0
+        || mCorpsePosition.z != 0;
 }
