@@ -19,6 +19,7 @@
 #include "GameState.h"
 #include "GrindBot.h"
 #include "HttpApi.h"
+#include "Lua.h"
 #include "WoWPlayer.h"
 #include "WowOffsets.h"
 
@@ -186,7 +187,7 @@ DWORD __stdcall StartBot(LPVOID args)
     bot.OnStart();
     while (true)
     {
-        std::this_thread::sleep_for(500ms);
+        std::this_thread::sleep_for(100ms);
         auto& gs = GameState::Instance();
         auto lock = gs.GetLock();
         if (gs.ObjectManager().GetPlayer().GetAddress() == nullptr)
@@ -210,6 +211,8 @@ FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 	HADESMEM_DETAIL_TRACE_A("Setting up EndScene hook");
 	HookEndScene(process, addr);
 	HADESMEM_DETAIL_TRACE_A("EndScene hooked, lets do this");
+
+    RegisterLuaFunctions();
 
 	DWORD httpThreadId;
 	auto httpThreadHandle = CreateThread(nullptr, 0, &StartHTTPServer, nullptr, 0, &httpThreadId);

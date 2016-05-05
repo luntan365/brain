@@ -28,6 +28,7 @@ set(Brain_SRCS
     GameState.cpp
     GrindBot.cpp
     HttpApi.cpp
+    Lua.cpp
     PathTracker.cpp
     Position.cpp
     WoWContainer.cpp

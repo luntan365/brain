@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 #include "WoWPlayer.h"
 
+#include "Lua.h"
 #include "WowOffsets.h"
 
 #include <hadesmem/write.hpp>
@@ -51,6 +52,7 @@ void WoWPlayer::Read(WoWPlayer* pPlayer, void* pObject)
     }
 
     pPlayer->mIsLooting = GetIsLooting(pObject);
+    pPlayer->mIsVendorOpen = GetLuaResult("r = IsVendorOpen()", "r") == "true";
 }
 
 void WoWPlayer::Reset()
@@ -97,28 +99,25 @@ WoWPlayer::Loot(const WoWUnit& unit) const
 }
 
 concurrency::task<void>
-ExecuteLua(const std::string& script)
+AsyncExecuteLua(const std::string& script)
 {
     return EndSceneManager::Instance().Execute([script] {
-        typedef void (__fastcall *FrameScript__Execute)(const char*);
-        ((FrameScript__Execute)0x704CD0)(script.c_str());
+        ExecuteLua(script);
     });
 }
 
 concurrency::task<std::string>
-GetLuaResult(const std::string& script, const std::string& argument)
+AsyncGetLuaResult(const std::string& script, const std::string& argument)
 {
-    return ExecuteLua(script).then([argument] {
-        typedef char* (__fastcall *GetText)(const char*);
-        char* result = ((GetText)0x703BF0)(argument.c_str());
-        return std::string(result);
+    return EndSceneManager::Instance().Execute([script, argument] {
+        return GetLuaResult(script, argument);
     });
 }
 
 concurrency::task<void>
 WoWPlayer::CastSpellByName(const std::string& name) const
 {
-    return ExecuteLua("CastSpellByName('" + name + "')");
+    return AsyncExecuteLua("CastSpellByName('" + name + "')");
 }
 
 concurrency::task<void>
@@ -183,13 +182,24 @@ WoWPlayer::AutoLoot() const
 concurrency::task<void>
 WoWPlayer::ReleaseSpirit() const
 {
-    return ExecuteLua("RepopMe()");
+    return AsyncExecuteLua("RepopMe()");
 }
 
 concurrency::task<void>
 WoWPlayer::ReviveAtCorpse() const
 {
-    return ExecuteLua("RetrieveCorpse()");
+    return AsyncExecuteLua("RetrieveCorpse()");
+}
+
+concurrency::task<void>
+WoWPlayer::SellAll() const
+{
+    return AsyncExecuteLua(
+        "for bag = 0,4,1 do "
+        "for slot = 1, GetContainerNumSlots(bag), 1 do "
+        "local name = GetContainerItemLink(bag,slot); "
+        "if name then UseContainerItem(bag,slot) end end end"
+    );
 }
 
 bool

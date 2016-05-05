@@ -39,6 +39,8 @@ public:
 
     concurrency::task<void> ReviveAtCorpse() const;
 
+    concurrency::task<void> SellAll() const;
+
     bool IsUnitHostile(const WoWUnit& unit) const;
 
     bool InRangeOf(const Vector3& v, float distance) const;
@@ -66,4 +68,5 @@ protected:
 
     bool mIsLooting;
     bool mIsGhost;
+    bool mIsVendorOpen;
 };
