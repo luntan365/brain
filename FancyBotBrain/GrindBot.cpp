@@ -76,6 +76,32 @@ std::vector<WoWUnit> GetAttackers(
     );
 }
 
+concurrency::task<std::vector<WoWUnit>>
+GetInLosUnits(
+    const WoWPlayer& me,
+    const std::vector<WoWUnit>& units)
+{
+    std::vector<concurrency::task<bool>> tasks;
+    for (const auto& unit : units)
+    {
+        tasks.emplace_back(
+            me.InLosWith(unit)
+        );
+    }
+    return concurrency::when_all(tasks.begin(), tasks.end())
+        .then([units](const std::vector<bool>& inLos) {
+            std::vector<WoWUnit> unitsOut;
+            for (auto i = 0; i < inLos.size(); i++)
+            {
+                if (inLos[i])
+                {
+                    unitsOut.push_back(units[i]);
+                }
+            }
+            return unitsOut;
+        });
+}
+
 const WoWUnit GetClosestUnit(
     const WoWPlayer& me,
     const std::vector<WoWUnit>& units)
@@ -108,32 +134,42 @@ void GrindBot::MoveTo(const WoWPlayer& me, const Position& position)
     mPathTracker.SetDestination(position);
 }
 
-void GrindBot::StopMoving()
+concurrency::task<void>
+GrindBot::StopMoving()
 {
-    mPathTracker.StopMoving();
+    return mPathTracker.StopMoving();
 }
 
-void GrindBot::DoPull(const WoWPlayer& me)
+concurrency::task<void>
+GrindBot::DoPull(const WoWPlayer& me)
 {
-    me.CastSpellByName("Fireball");
+    return me.CastSpellByName("Fireball");
 }
 
-void GrindBot::DoCombat(const WoWPlayer& me, GameState& state)
+concurrency::task<void>
+GrindBot::DoCombat(const WoWPlayer& me, GameState& state)
 {
     const auto& enemyUnits = state.ObjectManager().GetEnemyUnits();
     const auto& attackableUnits = GetAttackableUnits(me, enemyUnits);
     const auto& attackers = GetAttackers(me, attackableUnits);
-    const auto closestUnit = GetClosestUnit(me, attackers);
-    me.SetTarget(closestUnit);
-    me.Turn(closestUnit.GetPosition());
-    me.CastSpellByName("Fireball");
+    const auto& losUnitsTask = GetInLosUnits(me, attackers);
+    return losUnitsTask.then([&me] (const std::vector<WoWUnit>& losUnits) {
+        const auto closestUnit = GetClosestUnit(me, losUnits);
+        std::vector<concurrency::task<void>> tasks{
+            me.SetTarget(closestUnit),
+            me.Turn(closestUnit.GetPosition()),
+            me.CastSpellByName("Fireball")
+        };
+        return concurrency::when_all(tasks.begin(), tasks.end()).then([]{});
+    });
 }
 
-void GrindBot::Tick(GameState& state)
+concurrency::task<void>
+GrindBot::Tick(GameState& state)
 {
     if (!state.GetIsInGame())
     {
-        return;
+		return concurrency::task_from_result();
     }
     const auto& me = state.ObjectManager().GetPlayer();
     mPathTracker.SetPlayer(me);
@@ -146,13 +182,13 @@ void GrindBot::Tick(GameState& state)
     const auto lootableUnits = GetLootableUnits(units);
     if (!me.IsAlive())
     {
-        me.ReleaseSpirit();
+        return me.ReleaseSpirit();
     }
     else if (me.IsGhost())
     {
         if (me.InRangeOf(me.GetCorpsePosition(), 20.0))
         {
-            me.ReviveAtCorpse();
+            return me.ReviveAtCorpse();
         }
         else
         {
@@ -161,35 +197,40 @@ void GrindBot::Tick(GameState& state)
     }
     else if (me.IsInCombat())
     {
-        DoCombat(me, state);
+        return DoCombat(me, state);
     }
     else if (me.ManaPercent() < mConfig.mRestManaPercent)
     {
-        StopMoving();
-        me.UseItemByName(mConfig.mDrinkName);
+        return StopMoving().then([this, &me] {
+            me.UseItemByName(mConfig.mDrinkName);
+        });
     }
     else if (me.HealthPercent() < mConfig.mRestHealthPercent)
     {
-        StopMoving();
-        me.UseItemByName(mConfig.mFoodName);
+        return StopMoving().then([this, &me] {
+            me.UseItemByName(mConfig.mFoodName);
+        });
     }
     else if ((me.IsDrinking() && me.ManaPercent() < 100) ||
              (me.IsEating() && me.HealthPercent() < 100))
     {
-        StopMoving();
-        return;
+        return StopMoving();
     }
     else if (!lootableUnits.empty() && !me.GetInventory().IsFull())
     {
         const auto& closestUnit = GetClosestUnit(me, lootableUnits);
-        me.SetTarget(closestUnit);
+        auto t = me.SetTarget(closestUnit);
         if (me.IsLooting())
         {
-            me.AutoLoot();
+            return t.then([&me] {
+                return me.AutoLoot();
+            });
         }
         else if (me.InRangeOf(closestUnit, 3.0f))
         {
-            me.Loot(closestUnit);
+            return t.then([&me, closestUnit] {
+                return me.Loot(closestUnit);
+            });
         }
         else
         {
@@ -200,18 +241,29 @@ void GrindBot::Tick(GameState& state)
     {
         const auto& enemyUnits = state.ObjectManager().GetEnemyUnits();
         const auto& attackableUnits = GetAttackableUnits(me, enemyUnits);
+        const auto& losUnitsTask = GetInLosUnits(me, attackableUnits);
         const auto closestUnit = GetClosestUnit(me, attackableUnits);
-
-        me.SetTarget(closestUnit);
-        if (currentPosition.Distance(closestUnit.GetPosition()) < 25.0)
-        {
-            me.Turn(closestUnit.GetPosition());
-            DoPull(me);
-        }
-        else
-        {
-            MoveTo(me, closestUnit.GetPosition());
-        }
+        return losUnitsTask
+            .then([this, &me, currentPosition, closestUnit]
+                    (const std::vector<WoWUnit>& losUnits) {
+                const auto closestLosUnit = GetClosestUnit(me, losUnits);
+                if (currentPosition.Distance(closestLosUnit.GetPosition()) < 25.0)
+                {
+                    std::vector<concurrency::task<void>> tasks = {
+                        StopMoving(),
+                        me.SetTarget(closestLosUnit),
+                        me.Turn(closestLosUnit.GetPosition()),
+                        DoPull(me)
+                    };
+                    return concurrency::when_all(tasks.begin(), tasks.end())
+                        .then([]{});
+                }
+                else
+                {
+                    MoveTo(me, closestUnit.GetPosition());
+                    return mPathTracker.Tick();
+                }
+            });
     }
-    mPathTracker.Tick();
+    return mPathTracker.Tick();
 }

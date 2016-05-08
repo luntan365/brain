@@ -24,16 +24,16 @@ public:
 
     virtual void OnStart();
 
-    virtual void Tick(GameState& state);
+    virtual concurrency::task<void> Tick(GameState& state);
 
-    void DoPull(const WoWPlayer& me);
+    concurrency::task<void>DoPull(const WoWPlayer& me);
 
-    void DoCombat(const WoWPlayer& me, GameState& state);
+    concurrency::task<void> DoCombat(const WoWPlayer& me, GameState& state);
 
 private:
     void MoveTo(const WoWPlayer& me, const Position& p);
 
-    void StopMoving();
+    concurrency::task<void> StopMoving();
 
     GrindBotConfiguration mConfig;
     MoveMapManager mMoveMapManager;

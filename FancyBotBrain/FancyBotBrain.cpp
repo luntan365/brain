@@ -19,6 +19,7 @@
 #include "GameState.h"
 #include "GrindBot.h"
 #include "HttpApi.h"
+#include "BotIrcClient.h"
 #include "Lua.h"
 #include "WoWPlayer.h"
 #include "WowOffsets.h"
@@ -187,18 +188,25 @@ DWORD __stdcall StartBot(LPVOID args)
     HADESMEM_DETAIL_TRACE_A("Starting bot...");
     GrindBot bot;
     bot.OnStart();
+    auto curTask = concurrency::task_from_result();
     while (true)
     {
         std::this_thread::sleep_for(100ms);
         auto& gs = GameState::Instance();
-        auto lock = gs.GetLock();
-        if (gs.ObjectManager().GetPlayer().GetAddress() == nullptr)
         {
-            // Object manager hasn't been tick'd yet
-            continue;
+            auto lock = gs.GetLock();
+            if (gs.ObjectManager().GetPlayer().GetAddress() == nullptr)
+            {
+                // Object manager hasn't been tick'd yet
+                continue;
+            }
+            lock.lock();
+            curTask = bot.Tick(gs);
         }
-        lock.lock();
-        bot.Tick(gs);
+        if (!curTask.is_done())
+        {
+            curTask.wait();
+        }
     }
 }
 
@@ -213,6 +221,12 @@ FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 	HADESMEM_DETAIL_TRACE_A("Setting up EndScene hook");
 	HookEndScene(process, addr);
 	HADESMEM_DETAIL_TRACE_A("EndScene hooked, lets do this");
+
+    auto& irc = BotIrcClient::Instance();
+    irc.Connect("irc.freenode.net", 6667);
+    irc.SetName("Phuzad_Bot0");
+    irc.JoinChannel("#phuzad-land");
+    irc.Log("Hello World!");
 
 	DWORD httpThreadId;
 	auto httpThreadHandle = CreateThread(nullptr, 0, &StartHTTPServer, nullptr, 0, &httpThreadId);

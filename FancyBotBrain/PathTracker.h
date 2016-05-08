@@ -11,13 +11,13 @@ public:
         float threshold
     );
 
-    void Tick();
+    concurrency::task<void> Tick();
 
     void SetPlayer(const WoWPlayer& pPlayer);
 
     void SetDestination(const Position& position);
 
-    void StopMoving();
+    concurrency::task<void> StopMoving();
 
     bool ReachedDestination() const;
 

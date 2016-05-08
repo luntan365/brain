@@ -15,3 +15,25 @@ public:
 
     bool operator ==(const Vector3& v) const;
 };
+
+struct PositionPair
+{
+    PositionPair(const Vector3& start, const Vector3& end);
+
+    float startX;
+    float startY;
+    float startZ;
+    float endX;
+    float endY;
+    float endZ;
+};
+
+struct Intersection
+{
+    Intersection();
+    
+    float x;
+    float y;
+    float z;
+    float rotation;
+};

@@ -63,9 +63,9 @@ public:
 
     bool IsEating() const;
 
-    bool InLosWith(const Vector3& v) const;
+    concurrency::task<bool> InLosWith(const Vector3& v) const;
 
-    bool InLosWith(const WoWUnit& unit) const;
+    concurrency::task<bool> InLosWith(const WoWUnit& unit) const;
 
 private:
     concurrency::task<void> CTM(

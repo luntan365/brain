@@ -34,3 +34,21 @@ bool Position::operator==(const Vector3& v) const
 {
     return v.x == x && v.y == y && v.z == z;
 }
+
+PositionPair::PositionPair(const Vector3& start, const Vector3& end)
+    : startX(start.x)
+    , startY(start.y)
+    , startZ(start.z)
+    , endX(end.x)
+    , endY(end.y)
+    , endZ(end.z)
+{
+}
+
+Intersection::Intersection()
+    : x(0.0)
+    , y(0.0)
+    , z(0.0)
+    , rotation(0.0)
+{
+}

@@ -28,6 +28,7 @@ set(Brain_SRCS
     GameState.cpp
     GrindBot.cpp
     HttpApi.cpp
+    BotIrcClient.cpp
     Lua.cpp
     PathTracker.cpp
     Position.cpp
@@ -42,11 +43,38 @@ set(Brain_SRCS
     WoWUnit.cpp
 )
 
+SET(Brain_HEADERS
+  EndSceneManager.h
+  FancyBotBrain.h
+  GameState.h
+  Global.h
+  GrindBot.h
+  HttpApi.h
+  IBot.h
+  BotIrcClient.h
+  Lua.h
+  PathTracker.h
+  Position.h
+  Spells.h
+  Util.h
+  WoWContainer.h
+  WoWGameObject.h
+  WoWInventory.h
+  WoWItem.h
+  WoWObject.h
+  WoWObjectManager.h
+  WowOffsets.h
+  WoWPet.h
+  WoWPlayer.h
+  WoWUnit.h
+)
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/FindPathLib
   ${CMAKE_SOURCE_DIR}/dep/detour
   ${CMAKE_SOURCE_DIR}/dep/asmjit/src
+  ${CMAKE_SOURCE_DIR}/dep/IRCClient/src
   ${CMAKE_SOURCE_DIR}/dep/udis86
   ${CMAKE_SOURCE_DIR}/dep/udis86/libudis86
   ${CMAKE_SOURCE_DIR}/dep/hadesmem/include/memory
@@ -54,13 +82,14 @@ include_directories(
 )
 
 add_library(FancyBotBrain SHARED
-  ${Brain_SRCS}
+  ${Brain_SRCS} ${Brain_HEADERS}
 )
 
 target_link_libraries(
     FancyBotBrain
     FindPathLib
     asmjit
+    ircclient
     ${Boost_LIBRARIES}
     ${SHLWAPI}
     ${UDIS}

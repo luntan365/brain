@@ -277,13 +277,29 @@ WoWPlayer::IsDrinking() const
     return HasAura("Drink");
 }
 
-bool
+concurrency::task<bool>
 WoWPlayer::InLosWith(const Vector3& v) const
 {
-    return true;
+    const auto& start = GetPosition();
+    const auto& end = v;
+    return EndSceneManager::Instance().Execute([start, end] {
+        Intersection intersection;
+        PositionPair startEnd(start, end);
+        startEnd.startZ += 2.0;
+        startEnd.endZ += 2.0;
+        float distance = Position(start).Distance(end);
+        typedef uint8_t (__fastcall *IntersectFn)(PositionPair*, float*, Intersection*, uint32_t);
+        auto b = ((IntersectFn)0x6AA160)(&startEnd, &distance, &intersection, 0x100111);
+        return intersection;
+    }).then([] (const Intersection& intersection) {
+        return intersection.x == 0.0
+            && intersection.y == 0.0
+            && intersection.z == 0.0
+            && intersection.rotation == 0.0;
+    });
 }
 
-bool
+concurrency::task<bool>
 WoWPlayer::InLosWith(const WoWUnit& unit) const
 {
     return InLosWith(unit.GetPosition());

@@ -13,12 +13,12 @@ PathTracker::PathTracker(
 {
 }
 
-void
+concurrency::task<void>
 PathTracker::Tick()
 {
     if (!IsMoving())
     {
-        return;
+        return concurrency::task_from_result();
     }
     if (mPlayer.InRangeOf(mPath.front(), mThreshold))
     {
@@ -26,15 +26,16 @@ PathTracker::Tick()
     }
     if (!ReachedDestination())
     {
-        mPlayer.ClickToMove(mPath.front());
+        return mPlayer.ClickToMove(mPath.front());
     }
+    return concurrency::task_from_result();
 }
 
-void
+concurrency::task<void>
 PathTracker::StopMoving()
 {
     mPath.clear();
-    mPlayer.StopMoving();
+    return mPlayer.StopMoving();
 }
 
 void
