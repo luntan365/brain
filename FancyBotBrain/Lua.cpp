@@ -19,10 +19,8 @@ GetLuaResult(const std::string& script, const std::string& argument)
 
 void RegisterLuaFunctions()
 {
-    EndSceneManager::Instance().Execute([] {
-        for (const auto& f : LUA_FUNCTION_DEFS)
-        {
-            ExecuteLua(f);
-        }
-    });
+    for (const auto& f : LUA_FUNCTION_DEFS)
+    {
+        ExecuteLua(f);
+    }
 }

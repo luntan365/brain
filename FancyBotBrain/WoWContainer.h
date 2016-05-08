@@ -7,6 +7,7 @@
 
 class WoWContainer : public WoWObject
 {
+    friend class WoWInventory;
 public:
     static WoWContainer Read(void* pObject);
 
@@ -18,5 +19,5 @@ public:
 
 protected:
     uint32_t mNumSlots;
-    std::unordered_map<uint32_t, uint64_t> mSlots;
+    std::unordered_map<uint32_t, WoWItem> mSlots;
 };

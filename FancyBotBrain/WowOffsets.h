@@ -68,6 +68,7 @@ struct StaticFields
 
 struct ObjectFields
 {
+    static constexpr uintptr_t OBJECT_FIELD_ID = 0x0C;
 	static constexpr uintptr_t OBJECT_END = 0x18;
 };
 
@@ -100,6 +101,7 @@ struct UnitFields
 	static constexpr uintptr_t UNIT_VIRTUAL_ITEM_INFO = ObjectFields::OBJECT_END + 0x88;
 	static constexpr uintptr_t UNIT_FIELD_FLAGS = ObjectFields::OBJECT_END + 0xA0;
 	static constexpr uintptr_t UNIT_FIELD_AURA = ObjectFields::OBJECT_END + 0xA4;
+	static constexpr uintptr_t UNIT_FIELD_AURA_DEBUFF = ObjectFields::OBJECT_END + 0x124;
 	static constexpr uintptr_t UNIT_FIELD_AURAFLAGS = ObjectFields::OBJECT_END + 0x164;
 	static constexpr uintptr_t UNIT_FIELD_AURALEVELS = ObjectFields::OBJECT_END + 0x17C;
 	static constexpr uintptr_t UNIT_FIELD_AURAAPPLICATIONS = ObjectFields::OBJECT_END + 0x1AC;

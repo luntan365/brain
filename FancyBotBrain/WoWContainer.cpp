@@ -27,10 +27,19 @@ void WoWContainer::Read(WoWContainer* pContainer, void* pObject)
             itemOffset,
             &itemId
         );
-        if (itemId != 0)
+        if (itemId == 0)
         {
-            pContainer->mSlots.emplace(i, itemId);
+            continue;
         }
+        auto maybeObj = WoWObject::GetByGUID(itemId);
+        if (!maybeObj)
+        {
+            continue;
+        }
+        pContainer->mSlots.emplace(
+            i,
+            WoWItem::Read(maybeObj->GetAddress())
+        );
     }
 }
 

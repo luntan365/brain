@@ -27,6 +27,9 @@ void HttpApi::HandlerWrapper(
     std::shared_ptr<HttpServer::Request> request,
     HandlerFn fn)
 {
+    auto& gs = GameState::Instance();
+    auto lock = gs.GetLock();
+    lock.lock();
     boost::property_tree::ptree pt;
     Response myResponse;
     try

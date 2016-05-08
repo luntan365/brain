@@ -21,6 +21,8 @@ public:
 
     concurrency::task<void> InteractWith(const WoWUnit& unit) const;
 
+    concurrency::task<void> StopMoving() const;
+
     concurrency::task<void> Loot(const WoWUnit& unit) const;
 
     concurrency::task<void> CastSpellByName(const std::string& name) const;
@@ -41,6 +43,8 @@ public:
 
     concurrency::task<void> SellAll() const;
 
+    concurrency::task<void> UseItemByName(const std::string& name) const;
+
     bool IsUnitHostile(const WoWUnit& unit) const;
 
     bool InRangeOf(const Vector3& v, float distance) const;
@@ -54,6 +58,14 @@ public:
     const Position& GetCorpsePosition() const;
 
     bool IsGhost() const;
+
+    bool IsDrinking() const;
+
+    bool IsEating() const;
+
+    bool InLosWith(const Vector3& v) const;
+
+    bool InLosWith(const WoWUnit& unit) const;
 
 private:
     concurrency::task<void> CTM(

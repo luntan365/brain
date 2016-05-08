@@ -19,7 +19,9 @@ public:
 
     bool IsFull() const;
 
+    boost::optional<WoWItem> GetItemByName(const std::string& name) const;
+
 private:
     std::vector<WoWContainer> mBags;
-    std::array<uint64_t, 16> mBackpack;
+    std::array<WoWItem, 16> mBackpack;
 };

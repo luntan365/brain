@@ -34,6 +34,7 @@ void
 PathTracker::StopMoving()
 {
     mPath.clear();
+    mPlayer.StopMoving();
 }
 
 void

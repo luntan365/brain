@@ -58,6 +58,8 @@ void WoWPlayer::Read(WoWPlayer* pPlayer, void* pObject)
 void WoWPlayer::Reset()
 {
     mInventory.Clear();
+	mBuffs.clear();
+	mDebuffs.clear();
 }
 
 concurrency::task<void>
@@ -84,6 +86,12 @@ concurrency::task<void>
 WoWPlayer::InteractWith(const WoWUnit& unit) const
 {
     return CTM(unit.GetGUID(), unit.GetPosition(), 0x5);
+}
+
+concurrency::task<void>
+WoWPlayer::StopMoving() const
+{
+    return CTM(0, GetPosition(), 0xD);
 }
 
 concurrency::task<void>
@@ -202,6 +210,17 @@ WoWPlayer::SellAll() const
     );
 }
 
+concurrency::task<void>
+WoWPlayer::UseItemByName(const std::string& itemName) const
+{
+    const auto maybeItem = mInventory.GetItemByName(itemName);
+    if (maybeItem)
+    {
+        return maybeItem->Use();
+    }
+    return concurrency::task<void>();
+}
+
 bool
 WoWPlayer::IsUnitHostile(const WoWUnit& unit) const
 {
@@ -244,4 +263,28 @@ WoWPlayer::IsGhost() const
     return mCorpsePosition.x != 0
         || mCorpsePosition.y != 0
         || mCorpsePosition.z != 0;
+}
+
+bool
+WoWPlayer::IsEating() const
+{
+    return HasAura("Food");
+}
+
+bool
+WoWPlayer::IsDrinking() const
+{
+    return HasAura("Drink");
+}
+
+bool
+WoWPlayer::InLosWith(const Vector3& v) const
+{
+    return true;
+}
+
+bool
+WoWPlayer::InLosWith(const WoWUnit& unit) const
+{
+    return InLosWith(unit.GetPosition());
 }

@@ -31,6 +31,7 @@ set(Brain_SRCS
     Lua.cpp
     PathTracker.cpp
     Position.cpp
+    Spells.cpp
     WoWContainer.cpp
     WoWInventory.cpp
     WoWItem.cpp

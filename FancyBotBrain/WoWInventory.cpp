@@ -19,7 +19,12 @@ void WoWInventory::AddBag(uint64_t guid)
 
 void WoWInventory::SetBackpackItem(uint8_t index, uint64_t itemGuid)
 {
-    mBackpack[index] = itemGuid;
+    auto maybeObj = WoWObject::GetByGUID(itemGuid);
+    if (!maybeObj)
+    {
+        return;
+    }
+    mBackpack[index] = WoWItem::Read(maybeObj->GetAddress());
 }
 
 void WoWInventory::Clear()
@@ -43,8 +48,8 @@ uint32_t WoWInventory::EmptySlotCount() const
         mBackpack.begin(),
         mBackpack.end(),
         0,
-        [](uint32_t acc, uint64_t guid) {
-            return (guid == 0 ? acc + 1 : acc);
+        [](uint32_t acc, const WoWItem& item) {
+            return (item.GetGUID() == 0 ? acc + 1 : acc);
         }
     );
 
@@ -54,4 +59,28 @@ uint32_t WoWInventory::EmptySlotCount() const
 bool WoWInventory::IsFull() const
 {
     return EmptySlotCount() == 0;
+}
+
+boost::optional<WoWItem>
+WoWInventory::GetItemByName(const std::string& name) const
+{
+    for (const auto& item : mBackpack)
+    {
+        if (item.GetName() == name)
+        {
+            return boost::make_optional(item);
+        }
+    }
+    for (const auto& bag : mBags)
+    {
+        for (const auto& k_v : bag.mSlots)
+        {
+            const auto& item = k_v.second;
+            if (item.GetName() == name)
+            {
+                return boost::make_optional(item);
+            }
+        }
+    }
+    return boost::none;
 }

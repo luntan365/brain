@@ -126,30 +126,32 @@ static int frameIters = 0;
 void UpdateGameState()
 {
     auto& gs = GameState::Instance();
-    auto lock = gs.GetLock();
-    if (lock.try_lock())
-    {
-        gs.Update();
-    }
+    gs.Update();
 }
 
 extern "C" HRESULT WINAPI EndSceneHook(
 	hadesmem::PatchDetourBase* detour,
 	IDirect3DDevice9* device)
 {
-	auto& manager = EndSceneManager::Instance();
-
-	// TODO: Will probably want to give this a certain amount of time to execute
-	// in each frame rather than executing everything at once
-	while (!manager.Empty())
-	{
-		manager.EvaluateNextFunction();
-	}
-
-    if (frameIters % 100 == 0)
+    auto& gs = GameState::Instance();
+    auto lock = gs.GetLock();
+    if (lock.try_lock())
     {
-        manager.Execute(UpdateGameState);
+    	auto& manager = EndSceneManager::Instance();
+
+    	// TODO: Will probably want to give this a certain amount of time to execute
+    	// in each frame rather than executing everything at once
+    	while (!manager.Empty())
+    	{
+    		manager.EvaluateNextFunction();
+    	}
+
+        if (frameIters % 100 == 0)
+        {
+            manager.Execute(UpdateGameState);
+        }
     }
+
     frameIters++;
 
 	auto const end_scene = detour->GetTrampolineT<EndScene_Fn>();
@@ -211,8 +213,6 @@ FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 	HADESMEM_DETAIL_TRACE_A("Setting up EndScene hook");
 	HookEndScene(process, addr);
 	HADESMEM_DETAIL_TRACE_A("EndScene hooked, lets do this");
-
-    RegisterLuaFunctions();
 
 	DWORD httpThreadId;
 	auto httpThreadHandle = CreateThread(nullptr, 0, &StartHTTPServer, nullptr, 0, &httpThreadId);

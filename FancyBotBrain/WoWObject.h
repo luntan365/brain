@@ -3,6 +3,7 @@
 #include <boost/optional.hpp>
 
 #include "Position.h"
+#include "Util.h"
 
 enum WoWObjectType
 {
@@ -65,4 +66,3 @@ protected:
 	float mRotation;
 	std::string mName;
 };
-

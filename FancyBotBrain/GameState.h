@@ -25,7 +25,7 @@ private:
 
 private:
 	bool mIsInGame;
+    bool mFirstTick;
     WoWObjectManager mObjectManager;
     std::mutex mMutex;
 };
-

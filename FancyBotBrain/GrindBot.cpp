@@ -4,10 +4,15 @@
 #include "hadesmem/detail/trace.hpp"
 
 GrindBot::GrindBot()
-    : mMoveMapManager()
+    : mConfig()
+    , mMoveMapManager()
     , mPathTracker(&mMoveMapManager, WoWPlayer(), 0.0)
     , mCurrentMapId(0)
 {
+    mConfig.mRestManaPercent = 40;
+    mConfig.mRestHealthPercent = 40;
+    mConfig.mFoodName = "Forest Mushroom Cap";
+    mConfig.mDrinkName = "Refreshing Spring Water";
 }
 
 void GrindBot::OnStart()
@@ -58,6 +63,19 @@ std::vector<WoWUnit> GetAttackableUnits(
     );
 }
 
+std::vector<WoWUnit> GetAttackers(
+    const WoWPlayer& me,
+    const std::vector<WoWUnit>& units)
+{
+    return FilterUnits(
+        units,
+        [me](const WoWUnit& unit)
+        {
+            return unit.IsInCombat() && unit.TappedByMe();
+        }
+    );
+}
+
 const WoWUnit GetClosestUnit(
     const WoWPlayer& me,
     const std::vector<WoWUnit>& units)
@@ -90,6 +108,27 @@ void GrindBot::MoveTo(const WoWPlayer& me, const Position& position)
     mPathTracker.SetDestination(position);
 }
 
+void GrindBot::StopMoving()
+{
+    mPathTracker.StopMoving();
+}
+
+void GrindBot::DoPull(const WoWPlayer& me)
+{
+    me.CastSpellByName("Fireball");
+}
+
+void GrindBot::DoCombat(const WoWPlayer& me, GameState& state)
+{
+    const auto& enemyUnits = state.ObjectManager().GetEnemyUnits();
+    const auto& attackableUnits = GetAttackableUnits(me, enemyUnits);
+    const auto& attackers = GetAttackers(me, attackableUnits);
+    const auto closestUnit = GetClosestUnit(me, attackers);
+    me.SetTarget(closestUnit);
+    me.Turn(closestUnit.GetPosition());
+    me.CastSpellByName("Fireball");
+}
+
 void GrindBot::Tick(GameState& state)
 {
     if (!state.GetIsInGame())
@@ -120,6 +159,26 @@ void GrindBot::Tick(GameState& state)
             MoveTo(me, me.GetCorpsePosition());
         }
     }
+    else if (me.IsInCombat())
+    {
+        DoCombat(me, state);
+    }
+    else if (me.ManaPercent() < mConfig.mRestManaPercent)
+    {
+        StopMoving();
+        me.UseItemByName(mConfig.mDrinkName);
+    }
+    else if (me.HealthPercent() < mConfig.mRestHealthPercent)
+    {
+        StopMoving();
+        me.UseItemByName(mConfig.mFoodName);
+    }
+    else if ((me.IsDrinking() && me.ManaPercent() < 100) ||
+             (me.IsEating() && me.HealthPercent() < 100))
+    {
+        StopMoving();
+        return;
+    }
     else if (!lootableUnits.empty() && !me.GetInventory().IsFull())
     {
         const auto& closestUnit = GetClosestUnit(me, lootableUnits);
@@ -147,7 +206,7 @@ void GrindBot::Tick(GameState& state)
         if (currentPosition.Distance(closestUnit.GetPosition()) < 25.0)
         {
             me.Turn(closestUnit.GetPosition());
-            me.CastSpellByName("Fireball");
+            DoPull(me);
         }
         else
         {

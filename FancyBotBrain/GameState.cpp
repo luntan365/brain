@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #include "GameState.h"
 
+#include "Lua.h"
 #include "WowOffsets.h"
 
 
 GameState::GameState()
     : mIsInGame(false)
+    , mFirstTick(true)
     , mObjectManager()
 {
 }
@@ -31,6 +33,11 @@ void GameState::Update()
 	mIsInGame = Offsets::IsInGame::Read();
 	if (mIsInGame)
 	{
+        if (mFirstTick)
+        {
+            RegisterLuaFunctions();
+            mFirstTick = false;
+        }
 		UpdateInGame();
 	}
 	else
