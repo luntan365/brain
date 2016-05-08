@@ -21,6 +21,8 @@ public:
 
     boost::optional<WoWItem> GetItemByName(const std::string& name) const;
 
+    uint32_t GetItemCountByName(const std::string& name) const;
+
 private:
     std::vector<WoWContainer> mBags;
     std::array<WoWItem, 16> mBackpack;

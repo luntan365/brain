@@ -1,6 +1,7 @@
 #include "GrindBot.h"
 
 #include <numeric>
+#include "BotIrcClient.h"
 #include "hadesmem/detail/trace.hpp"
 
 GrindBot::GrindBot()
@@ -12,13 +13,13 @@ GrindBot::GrindBot()
     mConfig.mRestManaPercent = 40;
     mConfig.mRestHealthPercent = 40;
     mConfig.mFoodName = "Forest Mushroom Cap";
-    mConfig.mDrinkName = "Refreshing Spring Water";
+    mConfig.mDrinkName = "Conjured Water";
 }
 
 void GrindBot::OnStart()
 {
     mMoveMapManager.Initialize("C:\\mmaps");
-    mPathTracker = PathTracker(&mMoveMapManager, WoWPlayer(), 10.0);
+    mPathTracker = PathTracker(&mMoveMapManager, WoWPlayer(), 3.0);
 }
 
 template <typename F>
@@ -171,6 +172,7 @@ GrindBot::Tick(GameState& state)
     {
 		return concurrency::task_from_result();
     }
+    auto& irc = BotIrcClient::Instance();
     const auto& me = state.ObjectManager().GetPlayer();
     mPathTracker.SetPlayer(me);
 
@@ -182,38 +184,55 @@ GrindBot::Tick(GameState& state)
     const auto lootableUnits = GetLootableUnits(units);
     if (!me.IsAlive())
     {
+        irc.Log("Releasing spirit");
         return me.ReleaseSpirit();
     }
     else if (me.IsGhost())
     {
         if (me.InRangeOf(me.GetCorpsePosition(), 20.0))
         {
+            irc.Log("Reviving");
             return me.ReviveAtCorpse();
         }
         else
         {
+            irc.Log("Walking to corpse");
             MoveTo(me, me.GetCorpsePosition());
         }
     }
+    else if (me.IsCasting() || me.IsChanneling())
+    {
+        return concurrency::task_from_result();
+    }
     else if (me.IsInCombat())
     {
+        irc.Log("Combat tick");
         return DoCombat(me, state);
+    }
+    else if (me.GetInventory().GetItemCountByName(mConfig.mDrinkName) < 2)
+    {
+        return me.CastSpellByName("Conjure Water");
     }
     else if (me.ManaPercent() < mConfig.mRestManaPercent)
     {
+        irc.Log("Drinking");
         return StopMoving().then([this, &me] {
             me.UseItemByName(mConfig.mDrinkName);
+            concurrency::wait(100);
         });
     }
     else if (me.HealthPercent() < mConfig.mRestHealthPercent)
     {
+        irc.Log("Eating");
         return StopMoving().then([this, &me] {
             me.UseItemByName(mConfig.mFoodName);
+            concurrency::wait(100);
         });
     }
     else if ((me.IsDrinking() && me.ManaPercent() < 100) ||
              (me.IsEating() && me.HealthPercent() < 100))
     {
+        irc.Log("Eat/Drink Tick");
         return StopMoving();
     }
     else if (!lootableUnits.empty() && !me.GetInventory().IsFull())
@@ -222,18 +241,21 @@ GrindBot::Tick(GameState& state)
         auto t = me.SetTarget(closestUnit);
         if (me.IsLooting())
         {
+            irc.Log("Looting");
             return t.then([&me] {
                 return me.AutoLoot();
             });
         }
         else if (me.InRangeOf(closestUnit, 3.0f))
         {
+            irc.Log("Open Loot Window");
             return t.then([&me, closestUnit] {
                 return me.Loot(closestUnit);
             });
         }
         else
         {
+            irc.Log("Moving in to loot");
             MoveTo(me, closestUnit.GetPosition());
         }
     }
@@ -244,11 +266,12 @@ GrindBot::Tick(GameState& state)
         const auto& losUnitsTask = GetInLosUnits(me, attackableUnits);
         const auto closestUnit = GetClosestUnit(me, attackableUnits);
         return losUnitsTask
-            .then([this, &me, currentPosition, closestUnit]
+            .then([this, &me, &irc, currentPosition, closestUnit]
                     (const std::vector<WoWUnit>& losUnits) {
                 const auto closestLosUnit = GetClosestUnit(me, losUnits);
                 if (currentPosition.Distance(closestLosUnit.GetPosition()) < 25.0)
                 {
+                    irc.Log("Pulling mob");
                     std::vector<concurrency::task<void>> tasks = {
                         StopMoving(),
                         me.SetTarget(closestLosUnit),
@@ -260,6 +283,7 @@ GrindBot::Tick(GameState& state)
                 }
                 else
                 {
+                    irc.Log("Walking towards mob");
                     MoveTo(me, closestUnit.GetPosition());
                     return mPathTracker.Tick();
                 }

@@ -78,6 +78,10 @@ public:
 
     bool TappedByMe() const;
 
+    bool IsCasting() const;
+
+    bool IsChanneling() const;
+
 protected:
     int32_t mHealth;
     int32_t mMaxHealth;
@@ -89,6 +93,8 @@ protected:
     uint32_t mDynamicFlags;
     uint32_t mMovementState;
     uint32_t mFlags;
+    uint32_t mCastingSpell;
+    uint32_t mChannelingSpell;
 
     std::vector<uint32_t> mBuffs;
     std::vector<uint32_t> mDebuffs;

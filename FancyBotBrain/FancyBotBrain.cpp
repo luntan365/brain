@@ -147,10 +147,7 @@ extern "C" HRESULT WINAPI EndSceneHook(
     		manager.EvaluateNextFunction();
     	}
 
-        if (frameIters % 100 == 0)
-        {
-            manager.Execute(UpdateGameState);
-        }
+        manager.Execute(UpdateGameState);
     }
 
     frameIters++;

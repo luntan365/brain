@@ -63,11 +63,13 @@ public:
 
     static void Read(WoWItem* pItem, void* pObject);
 
+    concurrency::task<void> Use() const;
+
     const std::string& GetName() const;
 
     uint32_t GetId() const;
 
-    concurrency::task<void> Use() const;
+    uint32_t GetStackSize() const;
 
 private:
     void* GetItemCacheAddress(uint32_t itemId);

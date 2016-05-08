@@ -24,3 +24,7 @@
     * Clean load / unload
     * Handle multiple instances
     * Authentication
+
+
+* Stand before looting
+* Don't attack mobs tagged by other players

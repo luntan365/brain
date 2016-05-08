@@ -9,6 +9,7 @@ GameState::GameState()
     : mIsInGame(false)
     , mFirstTick(true)
     , mObjectManager()
+    , mTickCount(0)
 {
 }
 
@@ -38,12 +39,17 @@ void GameState::Update()
             RegisterLuaFunctions();
             mFirstTick = false;
         }
-		UpdateInGame();
+        mObjectManager.UpdatePlayer();
+        if (mTickCount % 100)
+        {
+    		UpdateInGame();
+        }
 	}
 	else
 	{
 
 	}
+    mTickCount++;
 }
 
 void GameState::UpdateInGame()

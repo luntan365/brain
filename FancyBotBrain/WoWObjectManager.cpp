@@ -33,6 +33,16 @@ WoWObjectManager::ReadObject(void* basePtr)
     mObjects.emplace(obj.GetGUID(), std::move(obj));
 }
 
+void
+WoWObjectManager::UpdatePlayer()
+{
+    auto addr = mPlayer.GetAddress();
+    if (addr != nullptr)
+    {
+        WoWPlayer::Read(&mPlayer, addr);
+    }
+}
+
 boost::optional<WoWObject>
 WoWObjectManager::GetObjectByGuid(uint64_t guid)
 {

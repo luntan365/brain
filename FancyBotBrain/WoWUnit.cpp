@@ -24,6 +24,8 @@ void WoWUnit::Read(WoWUnit* pUnit, void* pObject)
     ReadOffsetInto(AddOffset(pDescriptor, DATA_RAGE), &pUnit->mRage);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_TARGET_GUID), &pUnit->mTargetGUID);
     ReadOffsetInto(AddOffset(pDescriptor, UnitFields::UNIT_FIELD_FLAGS), &pUnit->mFlags);
+    ReadOffsetInto(AddOffset(pUnit->GetAddress(), 0xC8C), &pUnit->mCastingSpell);
+    ReadOffsetInto(AddOffset(pDescriptor, UnitFields::UNIT_CHANNEL_SPELL), &pUnit->mChannelingSpell);
 
     for (auto i = 0; i < 10; i++)
     {
@@ -102,4 +104,19 @@ float WoWUnit::ManaPercent() const
 bool WoWUnit::TappedByMe() const
 {
     return mDynamicFlags <= 2;
+}
+
+bool WoWUnit::IsCasting() const
+{
+    if (mCastingSpell == 0)
+    {
+        return false;
+    }
+    const auto& name = GetSpellName(mCastingSpell);
+    return (name != "Heroic Strike" && name != "Maul");
+}
+
+bool WoWUnit::IsChanneling() const
+{
+    return mChannelingSpell != 0;
 }

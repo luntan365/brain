@@ -84,3 +84,28 @@ WoWInventory::GetItemByName(const std::string& name) const
     }
     return boost::none;
 }
+
+uint32_t
+WoWInventory::GetItemCountByName(const std::string& name) const
+{
+    uint32_t count = 0;
+    for (const auto& item : mBackpack)
+    {
+        if (item.GetName() == name)
+        {
+            count += item.GetStackSize();
+        }
+    }
+    for (const auto& bag : mBags)
+    {
+        for (const auto& k_v : bag.mSlots)
+        {
+            const auto& item = k_v.second;
+            if (item.GetName() == name)
+            {
+                count += item.GetStackSize();
+            }
+        }
+    }
+    return count;
+}

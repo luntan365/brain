@@ -73,3 +73,8 @@ WoWItem::Use() const
         ((UseItemFn)UseItemAddr)(address, &n, 0);
     });
 }
+
+uint32_t WoWItem::GetStackSize() const
+{
+    return mStackCount;
+}

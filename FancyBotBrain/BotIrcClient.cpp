@@ -1,8 +1,11 @@
 #include "BotIrcClient.h"
 
+using namespace std::chrono;
+
 BotIrcClient::BotIrcClient()
     : mClient()
-    , mChannel("")
+    , mChannel()
+    , mLastSend(0)
 {
 }
 
@@ -30,7 +33,14 @@ void BotIrcClient::SetName(const std::string& nickname)
 
 void BotIrcClient::Log(const std::string& message)
 {
-    mClient.SendIRC("PRIVMSG " + mChannel + " :" + message);
+    milliseconds currentTimeMs = duration_cast<milliseconds>(
+        system_clock::now().time_since_epoch()
+    );
+    if (mLastSend + 500ms < currentTimeMs)
+    {
+        mClient.SendIRC("PRIVMSG " + mChannel + " :" + message);
+        mLastSend = currentTimeMs;
+    }
 }
 
 void BotIrcClient::JoinChannel(const std::string& channel)

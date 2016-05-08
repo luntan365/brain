@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include "IRCClient.h"
 
 class BotIrcClient
@@ -22,4 +23,5 @@ private:
 
     IRCClient mClient;
     std::string mChannel;
+    std::chrono::milliseconds mLastSend;
 };

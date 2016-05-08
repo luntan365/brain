@@ -30,6 +30,8 @@ public:
 
     void ReadObject(void* objPtr);
 
+    void UpdatePlayer();
+
     uint64_t GetActivePlayerGUID();
 
     const WoWPlayer& GetPlayer();
