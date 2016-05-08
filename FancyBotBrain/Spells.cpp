@@ -18,12 +18,24 @@ std::string GetSpellName(uint32_t id)
     }
     else
     {
-        auto rowOffset = spellDB + id * 4;
+        auto spellDBAddr = hadesmem::Read<uint32_t>(
+            GetThisProcess(),
+            (void*)spellDB
+        );
+        auto rowOffset = spellDBAddr + id * 4;
         auto rowAddr = hadesmem::Read<uint32_t>(
             GetThisProcess(),
             (void*)rowOffset
         );
-        auto nameAddr = rowAddr + 0x480;
+        if (rowAddr == 0)
+        {
+            return "";
+        }
+        auto nameAddrP = rowAddr + 480;
+        auto nameAddr = hadesmem::Read<uint32_t>(
+            GetThisProcess(),
+            (void*)nameAddrP
+        );
         return hadesmem::ReadString<char>(
             GetThisProcess(),
             (void*)nameAddr

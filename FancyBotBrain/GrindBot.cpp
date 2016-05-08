@@ -1,6 +1,7 @@
 #include "GrindBot.h"
 
 #include <numeric>
+#include <concrt.h>
 #include "BotIrcClient.h"
 #include "hadesmem/detail/trace.hpp"
 
@@ -209,6 +210,12 @@ GrindBot::Tick(GameState& state)
         irc.Log("Combat tick");
         return DoCombat(me, state);
     }
+    else if ((me.IsDrinking() && me.ManaPercent() < 100) ||
+             (me.IsEating() && me.HealthPercent() < 100))
+    {
+        irc.Log("Eat/Drink Tick");
+        return concurrency::task_from_result();
+    }
     else if (me.GetInventory().GetItemCountByName(mConfig.mDrinkName) < 2)
     {
         return me.CastSpellByName("Conjure Water");
@@ -217,23 +224,15 @@ GrindBot::Tick(GameState& state)
     {
         irc.Log("Drinking");
         return StopMoving().then([this, &me] {
-            me.UseItemByName(mConfig.mDrinkName);
-            concurrency::wait(100);
+            return me.UseItemByName(mConfig.mDrinkName);
         });
     }
     else if (me.HealthPercent() < mConfig.mRestHealthPercent)
     {
         irc.Log("Eating");
         return StopMoving().then([this, &me] {
-            me.UseItemByName(mConfig.mFoodName);
-            concurrency::wait(100);
+            return me.UseItemByName(mConfig.mFoodName);
         });
-    }
-    else if ((me.IsDrinking() && me.ManaPercent() < 100) ||
-             (me.IsEating() && me.HealthPercent() < 100))
-    {
-        irc.Log("Eat/Drink Tick");
-        return StopMoving();
     }
     else if (!lootableUnits.empty() && !me.GetInventory().IsFull())
     {
@@ -249,7 +248,9 @@ GrindBot::Tick(GameState& state)
         else if (me.InRangeOf(closestUnit, 3.0f))
         {
             irc.Log("Open Loot Window");
-            return t.then([&me, closestUnit] {
+            return t.then([this, &me, closestUnit] {
+                return StopMoving();
+            }).then([&me, closestUnit] {
                 return me.Loot(closestUnit);
             });
         }
