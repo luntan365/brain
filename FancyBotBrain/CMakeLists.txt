@@ -98,3 +98,6 @@ target_link_libraries(
     ${SHLWAPI}
     ${UDIS}
 )
+
+add_executable(TcpServerHarness ControlServer.cpp)
+target_link_libraries(TcpServerHarness ${Boost_LIBRARIES})
