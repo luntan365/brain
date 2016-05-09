@@ -24,6 +24,7 @@ add_definitions(
 set(Brain_SRCS
     classes/MageClass.cpp
     classes/PaladinClass.cpp
+    ControlClient.cpp
     dllmain.cpp
     EndSceneManager.cpp
     FancyBotBrain.cpp
@@ -48,6 +49,7 @@ set(Brain_SRCS
 set(Brain_HEADERS
     classes/MageClass.h
     classes/PaladinClass.h
+    ControlClient.h
     EndSceneManager.h
     FancyBotBrain.h
     GameState.h
@@ -98,6 +100,3 @@ target_link_libraries(
     ${SHLWAPI}
     ${UDIS}
 )
-
-add_executable(TcpServerHarness ControlServer.cpp)
-target_link_libraries(TcpServerHarness ${Boost_LIBRARIES})

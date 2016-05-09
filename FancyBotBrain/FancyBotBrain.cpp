@@ -14,6 +14,7 @@
 #include "hadesmem/patcher.hpp"
 #include "hadesmem/process.hpp"
 
+#include "ControlClient.h"
 #include "EndSceneManager.h"
 #include "Global.h"
 #include "GameState.h"
@@ -169,17 +170,6 @@ void UnhookEndScene()
 	pDetour->Remove();
 }
 
-typedef SimpleWeb::Server<SimpleWeb::HTTP> HttpServer;
-
-DWORD __stdcall StartHTTPServer(LPVOID args)
-{
-	HADESMEM_DETAIL_TRACE_A("Starting HTTP Server...");
-    HttpApi server(8080, 4);
-    server.Start();
-	HADESMEM_DETAIL_TRACE_A("HTTP Server Closed");
-    return 0;
-}
-
 DWORD __stdcall StartBot(LPVOID args)
 {
     HADESMEM_DETAIL_TRACE_A("Starting bot...");
@@ -218,12 +208,6 @@ FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 	HADESMEM_DETAIL_TRACE_A("Setting up EndScene hook");
 	HookEndScene(process, addr);
 	HADESMEM_DETAIL_TRACE_A("EndScene hooked, lets do this");
-
-    auto& irc = BotIrcClient::Instance();
-    irc.Connect("irc.freenode.net", 6667);
-    irc.SetName("Phuzad_Bot0");
-    irc.JoinChannel("#phuzad-land");
-    irc.Log("Hello World!");
 
 	DWORD httpThreadId;
 	auto httpThreadHandle = CreateThread(nullptr, 0, &StartHTTPServer, nullptr, 0, &httpThreadId);
