@@ -30,6 +30,10 @@ void WoWPlayer::Read(WoWPlayer* pPlayer, void* pObject)
     ReadOffsetInto(StaticFields::STATIC_CORPSE_X, &pPlayer->mCorpsePosition.x);
     ReadOffsetInto(StaticFields::STATIC_CORPSE_Y, &pPlayer->mCorpsePosition.y);
     ReadOffsetInto(StaticFields::STATIC_CORPSE_Z, &pPlayer->mCorpsePosition.z);
+    ReadOffsetInto(
+        StaticFields::STATIC_AUTO_REPEATING_SPELL,
+        &pPlayer->mAutoRepeatingSpell
+    );
 
     for (uint8_t backpackIdx = 0; backpackIdx < 16; backpackIdx++)
     {
@@ -120,6 +124,15 @@ AsyncGetLuaResult(const std::string& script, const std::string& argument)
     return EndSceneManager::Instance().Execute([script, argument] {
         return GetLuaResult(script, argument);
     });
+}
+
+concurrency::task<void>
+WoWPlayer::Attack() const
+{
+    return AsyncExecuteLua(
+        "if IsCurrentAction('24') == nil "
+        "then CastSpellByName('Attack') end"
+    );
 }
 
 concurrency::task<void>
@@ -303,4 +316,9 @@ concurrency::task<bool>
 WoWPlayer::InLosWith(const WoWUnit& unit) const
 {
     return InLosWith(unit.GetPosition());
+}
+
+int32_t WoWPlayer::GetAutoRepeatingSpell() const
+{
+    return mAutoRepeatingSpell;
 }

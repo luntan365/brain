@@ -4,6 +4,7 @@
 MageConfig::MageConfig(const GrindBotConfiguration& config)
     : GrindBotConfiguration(config)
 {
+    mCombatRange = 25.0;
 }
 
 MageClass::MageClass(const MageConfig& config, GrindBot* pBot)
@@ -43,7 +44,6 @@ MageClass::DoRest(const WoWPlayer& me, GameState& state)
     if ((me.IsDrinking() && me.ManaPercent() < 100) ||
         (me.IsEating() && me.HealthPercent() < 100))
     {
-        irc.Log("Eat/Drink Tick");
         return concurrency::task_from_result(true);
     }
     else if (me.ManaPercent() < mConfig.mRestManaPercent)

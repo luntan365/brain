@@ -64,6 +64,7 @@ struct StaticFields
 	static constexpr void* STATIC_CORPSE_X = (void*)0xB4E284;
 	static constexpr void* STATIC_CORPSE_Y = (void*)0xB4E288;
 	static constexpr void* STATIC_CORPSE_Z = (void*)0xB4E28C;
+	static constexpr void* STATIC_AUTO_REPEATING_SPELL = (void*)0x00CEAC30;
 };
 
 struct ObjectFields

@@ -78,9 +78,13 @@ public:
 
     bool TappedByMe() const;
 
+    bool TappedByOther() const;
+
     bool IsCasting() const;
 
     bool IsChanneling() const;
+
+    uint64_t GetTargetGuid() const;
 
 protected:
     int32_t mHealth;

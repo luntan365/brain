@@ -3,7 +3,8 @@
 #include <numeric>
 #include <concrt.h>
 #include "BotIrcClient.h"
-#include "MageClass.h"
+#include "classes/MageClass.h"
+#include "classes/PaladinClass.h"
 #include "hadesmem/detail/trace.hpp"
 
 GrindBot::GrindBot()
@@ -18,14 +19,16 @@ GrindBot::GrindBot()
     mConfig.mRestHealthPercent = 40;
     mConfig.mFoodName = "Forest Mushroom Cap";
     mConfig.mDrinkName = "Conjured Water";
+    mConfig.mCombatRange = 4.0;
 }
 
 void GrindBot::OnStart()
 {
     mMoveMapManager.Initialize("C:\\mmaps");
     mPathTracker = PathTracker(&mMoveMapManager, WoWPlayer(), 3.0);
-    MageConfig config(mConfig);
-    mpClass.reset(new MageClass(config, this));
+    PaladinConfig config(mConfig);
+    mConfig = config;
+    mpClass.reset(new PaladinClass(config, this));
 }
 
 std::vector<WoWUnit> GetLootableUnits(const std::vector<WoWUnit>& units)
@@ -47,7 +50,7 @@ std::vector<WoWUnit> GetAttackableUnits(
         units,
         [me](const WoWUnit& unit)
         {
-            return unit.IsAlive();
+            return unit.IsAlive() && !unit.TappedByOther();
         }
     );
 }
@@ -200,7 +203,7 @@ GrindBot::Tick(GameState& state)
     }
     else if (me.IsInCombat())
     {
-        irc.Log("Combat tick");
+        irc.Log("Auto repeat: " + std::to_string(me.GetAutoRepeatingSpell()));
         return DoCombat(me, state);
     }
     else if (mBuff)
@@ -247,7 +250,8 @@ GrindBot::Tick(GameState& state)
             .then([this, &me, &irc, &state, currentPosition, closestUnit]
                     (const std::vector<WoWUnit>& losUnits) {
                 const auto closestLosUnit = GetClosestUnit(me, losUnits);
-                if (currentPosition.Distance(closestLosUnit.GetPosition()) < 25.0)
+                if (currentPosition.Distance(closestLosUnit.GetPosition())
+                    < mConfig.mCombatRange)
                 {
                     irc.Log("Pulling mob");
                     std::vector<concurrency::task<void>> tasks = {

@@ -25,6 +25,8 @@ public:
 
     concurrency::task<void> Loot(const WoWUnit& unit) const;
 
+    concurrency::task<void> Attack() const;
+
     concurrency::task<void> CastSpellByName(const std::string& name) const;
 
     concurrency::task<void> SetTarget(const WoWUnit& unit) const;
@@ -67,6 +69,8 @@ public:
 
     concurrency::task<bool> InLosWith(const WoWUnit& unit) const;
 
+    int32_t GetAutoRepeatingSpell() const;
+
 private:
     concurrency::task<void> CTM(
         uint64_t targetGuid,
@@ -81,4 +85,5 @@ protected:
     bool mIsLooting;
     bool mIsGhost;
     bool mIsVendorOpen;
+    int32_t mAutoRepeatingSpell;
 };

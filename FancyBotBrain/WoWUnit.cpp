@@ -103,7 +103,12 @@ float WoWUnit::ManaPercent() const
 
 bool WoWUnit::TappedByMe() const
 {
-    return mDynamicFlags <= 2;
+    return mDynamicFlags >= 0 && mDynamicFlags <= 2;
+}
+
+bool WoWUnit::TappedByOther() const
+{
+    return mDynamicFlags >= 4 && mDynamicFlags <= 6;
 }
 
 bool WoWUnit::IsCasting() const
@@ -119,4 +124,9 @@ bool WoWUnit::IsCasting() const
 bool WoWUnit::IsChanneling() const
 {
     return mChannelingSpell != 0;
+}
+
+uint64_t WoWUnit::GetTargetGuid() const
+{
+    return mTargetGUID;
 }

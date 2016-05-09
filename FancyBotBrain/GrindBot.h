@@ -15,6 +15,8 @@ struct GrindBotConfiguration
 
     std::string mDrinkName;
     std::string mFoodName;
+
+    float mCombatRange;
 };
 
 

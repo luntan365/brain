@@ -22,6 +22,8 @@ add_definitions(
 )
 
 set(Brain_SRCS
+    classes/MageClass.cpp
+    classes/PaladinClass.cpp
     dllmain.cpp
     EndSceneManager.cpp
     FancyBotBrain.cpp
@@ -30,7 +32,6 @@ set(Brain_SRCS
     HttpApi.cpp
     BotIrcClient.cpp
     Lua.cpp
-    MageClass.cpp
     PathTracker.cpp
     Position.cpp
     Spells.cpp
@@ -44,30 +45,32 @@ set(Brain_SRCS
     WoWUnit.cpp
 )
 
-SET(Brain_HEADERS
-  EndSceneManager.h
-  FancyBotBrain.h
-  GameState.h
-  Global.h
-  GrindBot.h
-  HttpApi.h
-  IBot.h
-  BotIrcClient.h
-  Lua.h
-  PathTracker.h
-  Position.h
-  Spells.h
-  Util.h
-  WoWContainer.h
-  WoWGameObject.h
-  WoWInventory.h
-  WoWItem.h
-  WoWObject.h
-  WoWObjectManager.h
-  WowOffsets.h
-  WoWPet.h
-  WoWPlayer.h
-  WoWUnit.h
+set(Brain_HEADERS
+    classes/MageClass.h
+    classes/PaladinClass.h
+    EndSceneManager.h
+    FancyBotBrain.h
+    GameState.h
+    Global.h
+    GrindBot.h
+    HttpApi.h
+    IBot.h
+    BotIrcClient.h
+    Lua.h
+    PathTracker.h
+    Position.h
+    Spells.h
+    Util.h
+    WoWContainer.h
+    WoWGameObject.h
+    WoWInventory.h
+    WoWItem.h
+    WoWObject.h
+    WoWObjectManager.h
+    WowOffsets.h
+    WoWPet.h
+    WoWPlayer.h
+    WoWUnit.h
 )
 
 include_directories(

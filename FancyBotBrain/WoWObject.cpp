@@ -72,3 +72,12 @@ void* WoWObject::GetAddress() const
 {
     return mAddress;
 }
+
+const WoWUnit* WoWObject::ToUnit() const
+{
+    if (GetType() == OT_UNIT || GetType() == OT_PLAYER)
+    {
+        return (WoWUnit*)this;
+    }
+    return nullptr;
+}

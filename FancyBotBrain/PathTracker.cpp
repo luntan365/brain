@@ -58,7 +58,7 @@ PathTracker::SetDestination(const Position& position)
 bool
 PathTracker::ReachedDestination() const
 {
-    return mPlayer.InRangeOf(mDestination, mThreshold);
+    return mPath.empty() || mPlayer.InRangeOf(mDestination, mThreshold);
 }
 
 bool

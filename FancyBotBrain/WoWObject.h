@@ -17,6 +17,7 @@ enum WoWObjectType
     OT_CORPSE = 7,
 };
 
+class WoWUnit;
 
 class WoWObject
 {
@@ -54,6 +55,8 @@ public:
     const Position& GetPosition() const;
 
     WoWObjectType GetType() const;
+
+    const WoWUnit* ToUnit() const;
 
 protected:
     static void* GetDataPointer(void* pObject);
