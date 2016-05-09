@@ -27,3 +27,4 @@
 
 * Don't attack mobs tagged by other players
 * Can get stuck thinking we're close enough when mob is above you
+* GrindBot::StopMoving needs to be accessible via CustomClasses

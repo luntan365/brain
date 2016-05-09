@@ -3,6 +3,7 @@
 #include <numeric>
 #include <concrt.h>
 #include "BotIrcClient.h"
+#include "MageClass.h"
 #include "hadesmem/detail/trace.hpp"
 
 GrindBot::GrindBot()
@@ -10,6 +11,8 @@ GrindBot::GrindBot()
     , mMoveMapManager()
     , mPathTracker(&mMoveMapManager, WoWPlayer(), 0.0)
     , mCurrentMapId(0)
+    , mBuff(true)
+    , mRest(true)
 {
     mConfig.mRestManaPercent = 40;
     mConfig.mRestHealthPercent = 40;
@@ -21,24 +24,8 @@ void GrindBot::OnStart()
 {
     mMoveMapManager.Initialize("C:\\mmaps");
     mPathTracker = PathTracker(&mMoveMapManager, WoWPlayer(), 3.0);
-}
-
-template <typename F>
-std::vector<WoWUnit> FilterUnits(const std::vector<WoWUnit>& units, F fn)
-{
-    std::vector<WoWUnit> out;
-    std::for_each(
-        units.begin(),
-        units.end(),
-        [&out, &fn](const WoWUnit& unit)
-        {
-            if (fn(unit))
-            {
-                out.emplace_back(unit);
-            }
-        }
-    );
-    return out;
+    MageConfig config(mConfig);
+    mpClass.reset(new MageClass(config, this));
 }
 
 std::vector<WoWUnit> GetLootableUnits(const std::vector<WoWUnit>& units)
@@ -143,26 +130,32 @@ GrindBot::StopMoving()
 }
 
 concurrency::task<void>
-GrindBot::DoPull(const WoWPlayer& me)
+GrindBot::DoPull(const WoWPlayer& me, GameState& state)
 {
-    return me.CastSpellByName("Fireball");
+    return mpClass->DoPull(me, state);
 }
 
 concurrency::task<void>
 GrindBot::DoCombat(const WoWPlayer& me, GameState& state)
 {
-    const auto& enemyUnits = state.ObjectManager().GetEnemyUnits();
-    const auto& attackableUnits = GetAttackableUnits(me, enemyUnits);
-    const auto& attackers = GetAttackers(me, attackableUnits);
-    const auto& losUnitsTask = GetInLosUnits(me, attackers);
-    return losUnitsTask.then([&me] (const std::vector<WoWUnit>& losUnits) {
-        const auto closestUnit = GetClosestUnit(me, losUnits);
-        std::vector<concurrency::task<void>> tasks{
-            me.SetTarget(closestUnit),
-            me.Turn(closestUnit.GetPosition()),
-            me.CastSpellByName("Fireball")
-        };
-        return concurrency::when_all(tasks.begin(), tasks.end()).then([]{});
+    mRest = true;
+    mBuff = true;
+    return mpClass->DoCombat(me, state);
+}
+
+concurrency::task<void>
+GrindBot::DoRest(const WoWPlayer& me, GameState& state)
+{
+    return mpClass->DoRest(me, state).then([this] (bool moreRest) {
+        mRest = moreRest;
+    });
+}
+
+concurrency::task<void>
+GrindBot::DoBuff(const WoWPlayer& me, GameState& state)
+{
+    return mpClass->DoBuff(me, state).then([this] (bool moreBuff) {
+        mBuff = moreBuff;
     });
 }
 
@@ -210,29 +203,13 @@ GrindBot::Tick(GameState& state)
         irc.Log("Combat tick");
         return DoCombat(me, state);
     }
-    else if ((me.IsDrinking() && me.ManaPercent() < 100) ||
-             (me.IsEating() && me.HealthPercent() < 100))
+    else if (mBuff)
     {
-        irc.Log("Eat/Drink Tick");
-        return concurrency::task_from_result();
+        return DoBuff(me, state);
     }
-    else if (me.GetInventory().GetItemCountByName(mConfig.mDrinkName) < 2)
+    else if (mRest)
     {
-        return me.CastSpellByName("Conjure Water");
-    }
-    else if (me.ManaPercent() < mConfig.mRestManaPercent)
-    {
-        irc.Log("Drinking");
-        return StopMoving().then([this, &me] {
-            return me.UseItemByName(mConfig.mDrinkName);
-        });
-    }
-    else if (me.HealthPercent() < mConfig.mRestHealthPercent)
-    {
-        irc.Log("Eating");
-        return StopMoving().then([this, &me] {
-            return me.UseItemByName(mConfig.mFoodName);
-        });
+        return DoRest(me, state);
     }
     else if (!lootableUnits.empty() && !me.GetInventory().IsFull())
     {
@@ -267,7 +244,7 @@ GrindBot::Tick(GameState& state)
         const auto& losUnitsTask = GetInLosUnits(me, attackableUnits);
         const auto closestUnit = GetClosestUnit(me, attackableUnits);
         return losUnitsTask
-            .then([this, &me, &irc, currentPosition, closestUnit]
+            .then([this, &me, &irc, &state, currentPosition, closestUnit]
                     (const std::vector<WoWUnit>& losUnits) {
                 const auto closestLosUnit = GetClosestUnit(me, losUnits);
                 if (currentPosition.Distance(closestLosUnit.GetPosition()) < 25.0)
@@ -277,7 +254,7 @@ GrindBot::Tick(GameState& state)
                         StopMoving(),
                         me.SetTarget(closestLosUnit),
                         me.Turn(closestLosUnit.GetPosition()),
-                        DoPull(me)
+                        DoPull(me, state)
                     };
                     return concurrency::when_all(tasks.begin(), tasks.end())
                         .then([]{});

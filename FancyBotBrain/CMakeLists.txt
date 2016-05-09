@@ -30,6 +30,7 @@ set(Brain_SRCS
     HttpApi.cpp
     BotIrcClient.cpp
     Lua.cpp
+    MageClass.cpp
     PathTracker.cpp
     Position.cpp
     Spells.cpp
