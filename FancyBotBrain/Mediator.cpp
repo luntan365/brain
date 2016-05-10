@@ -94,6 +94,7 @@ Mediator::HandleControlRequests()
 
         const std::string& type = json["type"];
         bool success = false;
+        nlohmann::json payload({});
         if (type == "start")
         {
             StartBot();
@@ -104,7 +105,13 @@ Mediator::HandleControlRequests()
             StopBot();
             success = true;
         }
+        else if (type == "status")
+        {
+            payload["pid"] = GetCurrentProcessId();
+            success = true;
+        }
         nlohmann::json response;
+        response["payload"] = payload;
         response["type"] = "response";
         response["success"] = success;
         if (json.find("id") != json.end())

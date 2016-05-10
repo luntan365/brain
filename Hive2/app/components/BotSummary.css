@@ -1,0 +1,33 @@
+
+.botlink {
+    font-size: 16px;
+    border: 1px solid white;
+    padding: 20px;
+}
+
+.buttonGroup {
+    margin: 0 auto;
+    width: 600px;
+}
+
+.button {
+    border: 1px solid;
+    margin: 0 auto;
+    width: 100px;
+    padding: 20px;
+    text-align: center;
+    font-weight: 100;
+    display: inline-block;
+}
+
+.summaryHeader {
+    font-size: 40px;
+    font-weight: bold;
+    text-align: center;
+    padding-bottom: 10px;
+}
+
+.summary {
+    width: 80%;
+    margin: 0 auto;
+}

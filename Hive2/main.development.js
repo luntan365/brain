@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain, Menu, crashReporter, shell } from 'electron';
+import child_process from 'child_process';
 import net from 'net';
 import json from 'json-stream';
+import { RandomUInt32 } from './app/utils/Helpers';
 
 let menu;
 let template;
@@ -12,26 +14,63 @@ if (process.env.NODE_ENV === 'development') {
   require('electron-debug')();
 }
 
+function ipcSend(event, obj) {
+    if (mainWindow !== null) {
+        mainWindow.webContents.send(event, obj);
+    } else {
+        mainWindowQueue.push(obj);
+    }
+}
+
+ipcMain.on('launch-bot', (event, arg) => {
+    console.log("Spawning new process");
+    child_process.spawn('..\\build\\Debug\\injector.exe', [], {
+        detached: true
+    });
+});
+
 // Start bot <-> client proxy
 var server = net.createServer();
 server.on('connection', function(socket) {
     console.log("Connection");
+    let botId = null;
     let encode = json.encode();
     let parse = json.parse();
     socket.pipe(parse);
     encode.pipe(socket);
 
-    parse.on('message', function(obj) {
-        if (mainWindow !== null) {
-            mainWindow.webContents.send('message', obj);
-        } else {
-            mainWindowQueue.push(obj);
+    // request PID information
+    let statusId = RandomUInt32();
+    encode.write({
+        id: statusId,
+        type: 'status'
+    });
+
+    parse.on('message', (obj) => {
+        console.log("IN: " + JSON.stringify(obj));
+        if (botId === null) {
+            if (obj.type == 'response' && obj['request-id'] == statusId) {
+                botId = obj.payload.pid.toString();
+                ipcSend('bot-connected', { botId });
+            }
+        }
+        else
+        {
+            ipcSend(botId, obj);
         }
     });
 
-    ipcMain.on('message', function(event, arg) {
+    ipcMain.on('message', (event, arg) => {
+        console.log("OUT: " + JSON.stringify(obj));
         encode.write(arg);
     });
+
+    socket.on('close', () => {
+        ipcSend('bot-disconnected', { botId });
+    });
+
+    socket.on('error', () => {});
+
 });
 server.listen(1337, '127.0.0.1');
 

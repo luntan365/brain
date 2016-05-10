@@ -33,6 +33,8 @@ using namespace std::chrono_literals;
 
 DWORD_PTR GetEndSceneAddress(const hadesmem::Process& process)
 {
+    std::unique_ptr<hadesmem::SuspendedProcess> pSuspend;
+    pSuspend.reset(new hadesmem::SuspendedProcess(process.GetId()));
 	uintptr_t callerOffset = 0x5A17B6;
 	auto endSceneAddrAllocator = hadesmem::Allocator(process, 4);
 	auto pEndSceneAddr = endSceneAddrAllocator.GetBase();
@@ -97,9 +99,13 @@ DWORD_PTR GetEndSceneAddress(const hadesmem::Process& process)
 
 	HADESMEM_DETAIL_TRACE_A(logger.getString());
 
+    pSuspend.reset();
+
 	while (hadesmem::Read<uint32_t>(process, pIsReady) == 0)
 	{
 	}
+
+    pSuspend.reset(new hadesmem::SuspendedProcess(process.GetId()));
 
 	std::vector<BYTE> code_old{ 0xFF, 0x91, 0xA8, 0x00, 0x00, 0x00 };
 	WriteVector(process, callerAddr, code_old);
@@ -110,6 +116,8 @@ DWORD_PTR GetEndSceneAddress(const hadesmem::Process& process)
 	endSceneAddrAllocator.Free();
 	isReadyAllocator.Free();
 	stub_mem_remote.Free();
+
+    pSuspend.reset();
 
 	return addr;
 }
@@ -173,17 +181,25 @@ void UnhookEndScene()
 
 FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 {
-	auto& process = GetThisProcess();
+    std::thread t([] {
+    	auto& process = GetThisProcess();
 
-	HADESMEM_DETAIL_TRACE_A("Retrieving EndScene Address");
-	auto addr = GetEndSceneAddress(process);
-	HADESMEM_DETAIL_TRACE_FORMAT_A("Retrieving EndScene Address: %d", addr);
+    	HADESMEM_DETAIL_TRACE_A("Retrieving EndScene Address");
+    	auto addr = GetEndSceneAddress(process);
+    	HADESMEM_DETAIL_TRACE_FORMAT_A("Retrieving EndScene Address: %d", addr);
 
-	HADESMEM_DETAIL_TRACE_A("Setting up EndScene hook");
-	HookEndScene(process, addr);
-	HADESMEM_DETAIL_TRACE_A("EndScene hooked, lets do this");
 
-    Mediator::Instance().Start();
+    	HADESMEM_DETAIL_TRACE_A("Setting up EndScene hook");
+        {
+            hadesmem::SuspendedProcess suspend{process.GetId()};
+        	HookEndScene(process, addr);
+        }
+    	HADESMEM_DETAIL_TRACE_A("EndScene hooked, lets do this");
+
+        Mediator::Instance().Start();
+    });
+
+    t.detach();
 
     return 0;
 }

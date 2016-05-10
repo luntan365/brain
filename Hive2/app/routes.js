@@ -3,13 +3,13 @@ import { Route, IndexRoute } from 'react-router';
 import App from './containers/App';
 import HomePage from './containers/HomePage';
 import BotPage from './containers/BotPage';
-import CounterPage from './containers/CounterPage';
+import BotSummaryPage from './containers/BotSummaryPage';
 
 
 export default (
   <Route path="/" component={App}>
     <IndexRoute component={HomePage} />
-    <Route path="/bot" component={BotPage} />
-    <Route path="/counter" component={CounterPage} />
+    <Route path="bots" component={BotSummaryPage} />
+    <Route path="bots/:botId" component={BotPage} />
   </Route>
 );

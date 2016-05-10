@@ -1,19 +1,40 @@
 const { ipcRenderer } = require('electron');
 const { RandomUInt32 } = require('./Helpers');
-
+const botActions = require('../actions/bot');
 
 class BotServer {
 
     constructor() {
+        this.dispatch = () => {};
+        this.bots = new Set();
 
+        ipcRenderer.on('bot-connected', (event, arg) => {
+            console.log("Got connection" + arg);
+            this.bots.add(arg.botId);
+            this.dispatch(botActions.connected(arg.botId));
+        });
+
+        ipcRenderer.on('bot-disconnected', (event, arg) => {
+            console.log("Got disconnection" + arg);
+            this.bots.delete(arg.botId);
+            this.dispatch(botActions.disconnected(arg.botId));
+        });
     }
 
-    onResponse(id) {
+    setStore(store) {
+        this.dispatch = store.dispatch;
+    }
+
+    bots() {
+        return this.bots;
+    }
+
+    onResponse(botId, id) {
         return new Promise( (resolve, reject) => {
             let timeout = setTimeout( () => {
                 return reject(new Error("Request Timeout"));
             }, 10000);
-            ipcRenderer.on('message', (event, arg) => {
+            ipcRenderer.on(botId, (event, arg) => {
                 if (arg.type == 'response' && arg['request-id'] == id) {
                     clearTimeout(timeout);
                     return resolve(arg);
@@ -22,14 +43,14 @@ class BotServer {
         });
     }
 
-    send(msg) {
-        ipcRenderer.send('message', msg);
+    send(botId, msg) {
+        ipcRenderer.send(botId, msg);
     }
 
-    request(object) {
+    request(botId, object) {
         const requestId = RandomUInt32();
         object['id'] = requestId;
-        this.send(object);
+        this.send(botId, object);
         return this.onResponse(requestId)
             .then(response => {
                 if (response.success) {

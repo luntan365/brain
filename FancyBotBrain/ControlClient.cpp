@@ -80,6 +80,10 @@ ControlClient::DoConnect()
             {
                 DoReadHeader();
             }
+            else
+            {
+                Reconnect();
+            }
         }
     );
 }
