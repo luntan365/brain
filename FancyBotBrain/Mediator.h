@@ -37,6 +37,7 @@ private:
     void StopBot();
 
 private:
+    MoveMapManager mMoveMapManager;
     std::unique_ptr<ControlClient> mpControl;
     std::unique_ptr<IBot> mpBot;
 

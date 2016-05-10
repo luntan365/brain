@@ -2,9 +2,9 @@
 
 #include "IBot.h"
 #include "ICustomClass.h"
-#include "MoveMapManager.h"
 #include "PathTracker.h"
 
+class MoveMapManager;
 
 struct GrindBotConfiguration
 {
@@ -23,7 +23,7 @@ struct GrindBotConfiguration
 class GrindBot : public IBot
 {
 public:
-    GrindBot();
+    GrindBot(MoveMapManager* pMoveMapManager);
 
     virtual void OnStart();
 
@@ -46,7 +46,6 @@ private:
 
     GrindBotConfiguration mConfig;
     std::unique_ptr<ICustomClass> mpClass;
-    MoveMapManager mMoveMapManager;
     PathTracker mPathTracker;
     uint32_t mCurrentMapId;
 

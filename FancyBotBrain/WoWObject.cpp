@@ -41,7 +41,7 @@ void* WoWObject::GetDataPointer(void* pObject)
 boost::optional<WoWObject> WoWObject::GetByGUID(uint64_t guid)
 {
     auto fn = (ObjectManagerGetObjectPtr)GetObjectPtrAddress;
-    auto pObject = fn(guid, 0xFFFFFFFF);
+    auto pObject = fn(guid);
     if (pObject == nullptr)
     {
         return boost::none;

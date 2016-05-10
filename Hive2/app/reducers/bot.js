@@ -1,4 +1,5 @@
 import {
+    BOT_ERROR,
     BOT_STARTING,
     BOT_RUNNING,
     BOT_STOPPING,
@@ -13,6 +14,8 @@ export default function bot(state = "Idle", action) {
       return "Running";
     case BOT_STOPPING:
       return "Stopping";
+    case BOT_ERROR:
+      return "Error";
     case BOT_STOPPED:
     default:
       return "Idle";

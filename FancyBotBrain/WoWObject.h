@@ -33,9 +33,9 @@ public:
 
     static const uintptr_t GUID_OFFSET = 0x30;
 
-    static const uintptr_t GetObjectPtrAddress = 0x468460;
+    static const uintptr_t GetObjectPtrAddress = 0x464870;
 
-    typedef void*(__stdcall *ObjectManagerGetObjectPtr)(uint64_t, uint32_t);
+    typedef void*(__stdcall *ObjectManagerGetObjectPtr)(uint64_t);
 
 public:
 	WoWObject();

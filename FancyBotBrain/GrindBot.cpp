@@ -7,10 +7,9 @@
 #include "classes/PaladinClass.h"
 #include "hadesmem/detail/trace.hpp"
 
-GrindBot::GrindBot()
+GrindBot::GrindBot(MoveMapManager* pMoveMapManager)
     : mConfig()
-    , mMoveMapManager()
-    , mPathTracker(&mMoveMapManager, WoWPlayer(), 0.0)
+    , mPathTracker(pMoveMapManager, WoWPlayer(), 3.0)
     , mCurrentMapId(0)
     , mBuff(true)
     , mRest(true)
@@ -24,8 +23,6 @@ GrindBot::GrindBot()
 
 void GrindBot::OnStart()
 {
-    mMoveMapManager.Initialize("C:\\mmaps");
-    mPathTracker = PathTracker(&mMoveMapManager, WoWPlayer(), 3.0);
     PaladinConfig config(mConfig);
     mConfig = config;
     mpClass.reset(new PaladinClass(config, this));

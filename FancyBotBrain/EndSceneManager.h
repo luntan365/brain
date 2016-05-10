@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <mutex>
 #include <ppltasks.h>
 #include <type_traits>
 
@@ -94,6 +95,7 @@ public:
     {
     	auto pPending = std::make_unique<PendingFunction<T>>(fn);
         auto event = pPending->mTaskEvent;
+        std::unique_lock<std::recursive_mutex> lock(mMutex);
     	mPendingFunctions.emplace_back(std::move(pPending));
         typedef typename TaskFromFn<T>::Type RetTask;
     	return RetTask(event);
@@ -106,5 +108,6 @@ public:
 private:
 	EndSceneManager();
 
+    std::recursive_mutex mMutex;
 	std::deque<std::unique_ptr<IPendingFunction>> mPendingFunctions;
 };

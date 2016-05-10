@@ -1,9 +1,6 @@
-const { ipcMain } = require('electron');
-const net = require('net');
-const json = require('json-stream');
+const { ipcRenderer } = require('electron');
 const { RandomUInt32 } = require('./Helpers');
 
-var server = net.createServer();
 
 class BotServer {
 
@@ -11,11 +8,29 @@ class BotServer {
 
     }
 
+    onResponse(id) {
+        return new Promise( (resolve, reject) => {
+            let timeout = setTimeout( () => {
+                return reject(new Error("Request Timeout"));
+            }, 10000);
+            ipcRenderer.on('message', (event, arg) => {
+                if (arg.type == 'response' && arg['request-id'] == id) {
+                    clearTimeout(timeout);
+                    return resolve(arg);
+                }
+            });
+        });
+    }
+
+    send(msg) {
+        ipcRenderer.send('message', msg);
+    }
+
     request(object) {
         const requestId = RandomUInt32();
         object['id'] = requestId;
-        send(object);
-        return onNextResponse(requestId)
+        this.send(object);
+        return this.onResponse(requestId)
             .then(response => {
                 if (response.success) {
                     Promise.resolve(response);
@@ -26,25 +41,6 @@ class BotServer {
     }
 }
 
-server.on('connection', function(socket) {
-    let encode = json.encode();
-    let parse = json.parse();
-    socket.pipe(parse);
-    encode.pipe(socket);
-
-    parse.on('message', function(obj) {
-        if (mainWindow !== null) {
-            mainWindow.webContents.send('message', obj);
-        } else {
-            mainWindowQueue.push(obj);
-        }
-    });
-
-    ipcMain.on('message', function(event, arg) {
-        encode.write(arg);
-    });
-});
-
-server.listen(1337, '127.0.0.1');
+let server = new BotServer();
 
 export default server;

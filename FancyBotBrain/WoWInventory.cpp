@@ -22,9 +22,12 @@ void WoWInventory::SetBackpackItem(uint8_t index, uint64_t itemGuid)
     auto maybeObj = WoWObject::GetByGUID(itemGuid);
     if (!maybeObj)
     {
-        return;
+        mBackpack[index] = WoWItem();
     }
-    mBackpack[index] = WoWItem::Read(maybeObj->GetAddress());
+    else
+    {
+        mBackpack[index] = WoWItem::Read(maybeObj->GetAddress());
+    }
 }
 
 void WoWInventory::Clear()

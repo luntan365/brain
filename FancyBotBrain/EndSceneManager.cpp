@@ -15,6 +15,7 @@ EndSceneManager::~EndSceneManager()
 void EndSceneManager::EvaluateNextFunction()
 {
 	HADESMEM_DETAIL_TRACE_A("Enter Evaluate");
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
 	auto& pPending = mPendingFunctions.front();
     pPending->Evaluate();
 	mPendingFunctions.pop_front();

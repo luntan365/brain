@@ -4,7 +4,7 @@
 PaladinConfig::PaladinConfig(const GrindBotConfiguration& config)
     : GrindBotConfiguration(config)
     , mUseCrusader(false)
-    , mUseBlessing(false)
+    , mUseBlessing(true)
     , mBlessing("Blessing of Might")
 {
 }

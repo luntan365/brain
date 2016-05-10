@@ -4,15 +4,13 @@ import styles from './Bot.css';
 
 class Bot extends Component {
   static propTypes = {
-    start: PropTypes.func.isRequired,
-    started: PropTypes.func.isRequired,
-    stop: PropTypes.func.isRequired,
-    stopped: PropTypes.func.isRequired,
+    requestStart: PropTypes.func.isRequired,
+    requestStop: PropTypes.func.isRequired,
     runState: PropTypes.string.isRequired
   };
 
   render() {
-    const { start, stop, runState } = this.props;
+    const { requestStart, requestStop, runState } = this.props;
     return (
       <div>
         <div className={styles.backButton}>
@@ -24,10 +22,10 @@ class Bot extends Component {
           {runState}
         </div>
         <div className={styles.btnGroup}>
-          <button className={styles.btn} onClick={start}>
+          <button className={styles.btn} onClick={requestStart}>
             Start
           </button>
-          <button className={styles.btn} onClick={stop}>
+          <button className={styles.btn} onClick={requestStop}>
             Stop
           </button>
         </div>

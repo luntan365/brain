@@ -9,10 +9,11 @@ ControlClient::ControlClient(
     tcp_iterator endpointIterator,
     HandlerFn handler)
     : mIoService(ioService)
-    , mSocket(ioService)
+    , mpSocket()
     , mHandler(handler)
+    , mEndpointIterator(endpointIterator)
 {
-    DoConnect(endpointIterator);
+    DoConnect();
 }
 
 void
@@ -49,8 +50,15 @@ void
 ControlClient::Close()
 {
     mIoService.post([this]() {
-        mSocket.close();
+        mpSocket->close();
     });
+}
+
+void
+ControlClient::Reconnect()
+{
+    mpSocket->close();
+    DoConnect();
 }
 
 void
@@ -60,11 +68,12 @@ ControlClient::OnMessage(const Json& json)
 }
 
 void
-ControlClient::DoConnect(tcp::resolver::iterator endpointIterator)
+ControlClient::DoConnect()
 {
+    mpSocket.reset(new tcp::socket(mIoService));
     boost::asio::async_connect(
-        mSocket,
-        endpointIterator,
+        *mpSocket,
+        mEndpointIterator,
         [this](boost::system::error_code ec, tcp::resolver::iterator)
         {
             if (!ec)
@@ -79,7 +88,7 @@ void
 ControlClient::DoReadHeader()
 {
     boost::asio::async_read(
-        mSocket,
+        *mpSocket,
         boost::asio::buffer((void*)&mReadMessage, ControlMessage::HEADER_LENGTH),
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
@@ -89,7 +98,7 @@ ControlClient::DoReadHeader()
             }
             else
             {
-                mSocket.close();
+                Reconnect();
             }
         }
     );
@@ -99,7 +108,7 @@ void
 ControlClient::DoReadBody()
 {
     boost::asio::async_read(
-        mSocket,
+        *mpSocket,
         boost::asio::buffer(mReadMessage.mBuffer, mReadMessage.mLength),
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
@@ -111,7 +120,7 @@ ControlClient::DoReadBody()
             }
             else
             {
-                mSocket.close();
+                Reconnect();
             }
         }
     );
@@ -121,7 +130,7 @@ void
 ControlClient::DoWrite()
 {
     boost::asio::async_write(
-        mSocket,
+        *mpSocket,
         boost::asio::buffer(
             (void*)&mWriteMessages.front(),
             mWriteMessages.front().mLength + ControlMessage::HEADER_LENGTH
@@ -138,7 +147,7 @@ ControlClient::DoWrite()
             }
             else
             {
-                mSocket.close();
+                Reconnect();
             }
         }
     );

@@ -1,4 +1,6 @@
-import { app, BrowserWindow, Menu, crashReporter, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, crashReporter, shell } from 'electron';
+import net from 'net';
+import json from 'json-stream';
 
 let menu;
 let template;
@@ -9,6 +11,29 @@ crashReporter.start();
 if (process.env.NODE_ENV === 'development') {
   require('electron-debug')();
 }
+
+// Start bot <-> client proxy
+var server = net.createServer();
+server.on('connection', function(socket) {
+    console.log("Connection");
+    let encode = json.encode();
+    let parse = json.parse();
+    socket.pipe(parse);
+    encode.pipe(socket);
+
+    parse.on('message', function(obj) {
+        if (mainWindow !== null) {
+            mainWindow.webContents.send('message', obj);
+        } else {
+            mainWindowQueue.push(obj);
+        }
+    });
+
+    ipcMain.on('message', function(event, arg) {
+        encode.write(arg);
+    });
+});
+server.listen(1337, '127.0.0.1');
 
 
 app.on('window-all-closed', () => {

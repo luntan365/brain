@@ -37,9 +37,11 @@ public:
     void Close();
 
 private:
+    void Reconnect();
+
     void OnMessage(const nlohmann::json& json);
 
-    void DoConnect(boost::asio::ip::tcp::resolver::iterator endpointIterator);
+    void DoConnect();
 
     void DoReadHeader();
 
@@ -49,8 +51,9 @@ private:
 
 private:
     boost::asio::io_service& mIoService;
-    boost::asio::ip::tcp::socket mSocket;
+    std::unique_ptr<boost::asio::ip::tcp::socket> mpSocket;
     ControlMessage mReadMessage;
     ControlMessageQueue mWriteMessages;
     HandlerFn mHandler;
+    tcp_iterator mEndpointIterator;
 };

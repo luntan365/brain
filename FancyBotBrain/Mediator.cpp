@@ -25,6 +25,9 @@ void Mediator::Start()
     irc.JoinChannel("#phuzad-land");
     irc.Log("Hello World!");
 
+    mMoveMapManager.Initialize("C:\\mmaps");
+    irc.Log("Move Maps Loaded.");
+
     mThreads.emplace_back([this] {
         StartControlClient();
     });
@@ -46,8 +49,9 @@ Mediator::Stop()
 }
 
 Mediator::Mediator()
-    : mpControl()
-    , mpBot(new GrindBot)
+    : mMoveMapManager()
+    , mpControl()
+    , mpBot()
     , mMessageMutex()
     , mMessageQueue()
     , mThreads()
@@ -83,24 +87,33 @@ Mediator::OnControlMessage(const nlohmann::json& json)
 void
 Mediator::HandleControlRequests()
 {
-    for (const auto& json : mMessageQueue)
+    std::unique_lock<std::mutex> lock(mMessageMutex);
+    while (!mMessageQueue.empty())
     {
+        const auto& json = mMessageQueue.front();
+
         const std::string& type = json["type"];
+        bool success = false;
         if (type == "start")
         {
             StartBot();
+            success = true;
         }
         else if (type == "stop")
         {
             StopBot();
+            success = true;
         }
         nlohmann::json response;
         response["type"] = "response";
+        response["success"] = success;
         if (json.find("id") != json.end())
         {
             response["request-id"] = json["id"];
         }
         mpControl->Write(response);
+
+        mMessageQueue.pop_front();
     }
 }
 
@@ -117,16 +130,16 @@ Mediator::RunBotThread()
             mStartBot = false;
             mStopBot = false;
         }
-        else if (mBotRunning)
-        {
-            BotIteration();
-        }
         else if (mStopBot)
         {
             mpBot->OnStop();
             mBotRunning = false;
             mStopBot = false;
             mStartBot = false;
+        }
+        else if (mBotRunning)
+        {
+            BotIteration();
         }
     }
 }
@@ -168,6 +181,7 @@ Mediator::StartBot()
 {
     if (!mBotRunning)
     {
+        mpBot.reset(new GrindBot(&mMoveMapManager));
         mStartBot = true;
         mStopBot = false;
     }
