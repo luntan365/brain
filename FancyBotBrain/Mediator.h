@@ -26,14 +26,26 @@ private:
 
     void OnControlMessage(const nlohmann::json& json);
 
+    void HandleControlRequests();
+
     void RunBotThread();
+
+    void BotIteration();
+
+    void StartBot();
+
+    void StopBot();
 
 private:
     std::unique_ptr<ControlClient> mpControl;
-    GrindBot mBot;
+    std::unique_ptr<IBot> mpBot;
 
     std::mutex mMessageMutex;
     std::deque<nlohmann::json> mMessageQueue;
 
     std::vector<std::thread> mThreads;
+
+    std::atomic<bool> mStartBot;
+    std::atomic<bool> mStopBot;
+    bool mBotRunning;
 };

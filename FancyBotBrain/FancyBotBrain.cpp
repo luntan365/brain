@@ -22,6 +22,7 @@
 #include "HttpApi.h"
 #include "BotIrcClient.h"
 #include "Lua.h"
+#include "Mediator.h"
 #include "WoWPlayer.h"
 #include "WowOffsets.h"
 
@@ -170,33 +171,6 @@ void UnhookEndScene()
 	pDetour->Remove();
 }
 
-DWORD __stdcall StartBot(LPVOID args)
-{
-    HADESMEM_DETAIL_TRACE_A("Starting bot...");
-    GrindBot bot;
-    bot.OnStart();
-    auto curTask = concurrency::task_from_result();
-    while (true)
-    {
-        std::this_thread::sleep_for(100ms);
-        auto& gs = GameState::Instance();
-        {
-            auto lock = gs.GetLock();
-            if (gs.ObjectManager().GetPlayer().GetAddress() == nullptr)
-            {
-                // Object manager hasn't been tick'd yet
-                continue;
-            }
-            lock.lock();
-            curTask = bot.Tick(gs);
-        }
-        if (!curTask.is_done())
-        {
-            curTask.wait();
-        }
-    }
-}
-
 FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 {
 	auto& process = GetThisProcess();
@@ -209,11 +183,7 @@ FANCYBOTBRAIN_API DWORD_PTR BrainMain(void)
 	HookEndScene(process, addr);
 	HADESMEM_DETAIL_TRACE_A("EndScene hooked, lets do this");
 
-	DWORD httpThreadId;
-	auto httpThreadHandle = CreateThread(nullptr, 0, &StartHTTPServer, nullptr, 0, &httpThreadId);
-
-    DWORD botThreadId;
-    auto botThreadHandle = CreateThread(nullptr, 0, &StartBot, nullptr, 0, &botThreadId);
+    Mediator::Instance().Start();
 
     return 0;
 }

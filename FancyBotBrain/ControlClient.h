@@ -23,10 +23,12 @@ class ControlClient
 public:
     typedef std::deque<ControlMessage> ControlMessageQueue;
     typedef boost::asio::ip::tcp::resolver::iterator tcp_iterator;
+    typedef std::function<void (const nlohmann::json&)> HandlerFn;
 
 public:
     ControlClient(boost::asio::io_service& ioService,
-                  tcp_iterator endpointIterator);
+                  tcp_iterator endpointIterator,
+                  HandlerFn handler);
 
     void Write(const nlohmann::json& json);
 
@@ -50,4 +52,5 @@ private:
     boost::asio::ip::tcp::socket mSocket;
     ControlMessage mReadMessage;
     ControlMessageQueue mWriteMessages;
+    HandlerFn mHandler;
 };

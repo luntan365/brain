@@ -27,6 +27,8 @@ public:
 
     virtual void OnStart();
 
+    virtual void OnStop();
+
     virtual concurrency::task<void> Tick(GameState& state);
 
     void MoveTo(const WoWPlayer& me, const Position& p);

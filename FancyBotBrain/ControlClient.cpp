@@ -6,9 +6,11 @@ using Json = nlohmann::json;
 
 ControlClient::ControlClient(
     boost::asio::io_service& ioService,
-    tcp_iterator endpointIterator)
+    tcp_iterator endpointIterator,
+    HandlerFn handler)
     : mIoService(ioService)
     , mSocket(ioService)
+    , mHandler(handler)
 {
     DoConnect(endpointIterator);
 }
@@ -54,7 +56,7 @@ ControlClient::Close()
 void
 ControlClient::OnMessage(const Json& json)
 {
-    std::cout << json.dump() << "\n";
+    mHandler(json);
 }
 
 void

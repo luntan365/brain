@@ -31,6 +31,10 @@ void GrindBot::OnStart()
     mpClass.reset(new PaladinClass(config, this));
 }
 
+void GrindBot::OnStop()
+{
+}
+
 std::vector<WoWUnit> GetLootableUnits(const std::vector<WoWUnit>& units)
 {
     return FilterUnits(

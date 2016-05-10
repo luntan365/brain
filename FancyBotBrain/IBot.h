@@ -11,5 +11,9 @@ public:
     }
 
     virtual void OnStart() = 0;
+
+    virtual void OnStop() = 0;
+
     virtual concurrency::task<void> Tick(GameState& state) = 0;
+
 };

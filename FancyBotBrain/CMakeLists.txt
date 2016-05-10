@@ -33,6 +33,7 @@ set(Brain_SRCS
     HttpApi.cpp
     BotIrcClient.cpp
     Lua.cpp
+    Mediator.cpp
     PathTracker.cpp
     Position.cpp
     Spells.cpp
@@ -49,6 +50,7 @@ set(Brain_SRCS
 set(Brain_HEADERS
     classes/MageClass.h
     classes/PaladinClass.h
+    BotIrcClient.h
     ControlClient.h
     EndSceneManager.h
     FancyBotBrain.h
@@ -57,8 +59,8 @@ set(Brain_HEADERS
     GrindBot.h
     HttpApi.h
     IBot.h
-    BotIrcClient.h
     Lua.h
+    Mediator.h
     PathTracker.h
     Position.h
     Spells.h
