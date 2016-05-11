@@ -39,6 +39,8 @@ private:
 private:
     MoveMapManager mMoveMapManager;
     std::unique_ptr<ControlClient> mpControl;
+
+    std::string mSelectedBot;
     std::unique_ptr<IBot> mpBot;
 
     std::mutex mMessageMutex;

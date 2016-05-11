@@ -12,6 +12,7 @@ class BotServer {
             console.log("Got connection" + arg);
             this.bots.add(arg.botId);
             this.dispatch(botActions.connected(arg.botId));
+            this.dispatch(botActions.getConfig(arg.botId));
         });
 
         ipcRenderer.on('bot-disconnected', (event, arg) => {
@@ -32,7 +33,7 @@ class BotServer {
     onResponse(botId, id) {
         return new Promise( (resolve, reject) => {
             let timeout = setTimeout( () => {
-                return reject(new Error("Request Timeout"));
+                return reject(new Error(`[${botId}] Request ${id}: Timeout`));
             }, 10000);
             ipcRenderer.on(botId, (event, arg) => {
                 if (arg.type == 'response' && arg['request-id'] == id) {
@@ -51,17 +52,15 @@ class BotServer {
         const requestId = RandomUInt32();
         object['id'] = requestId;
         this.send(botId, object);
-        return this.onResponse(requestId)
+        return this.onResponse(botId, requestId)
             .then(response => {
                 if (response.success) {
-                    Promise.resolve(response);
+                    return response;
                 } else {
-                    Promise.reject(response);
+                    return Promise.reject(response);
                 }
             });
     }
 }
 
-let server = new BotServer();
-
-export default server;
+export default new BotServer();

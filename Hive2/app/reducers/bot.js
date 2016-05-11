@@ -7,7 +7,22 @@ import {
     BOT_STARTING,
     BOT_RUNNING,
     BOT_STOPPING,
-    BOT_STOPPED
+    BOT_STOPPED,
+    BOT_CONFIG_UPDATE,
+    BOT_CONFIG_UPDATE_START,
+    BOT_CONFIG_UPDATE_SUCCESS,
+    BOT_CONFIG_UPDATE_FAILURE,
+    BOT_CONFIG_UPDATE_CLEAR,
+
+    BOT_GOT_BOT_CHOICES,
+    BOT_START_SELECT_BOT,
+    BOT_SELECT_BOT_SUCCESS,
+    BOT_SELECT_BOT_ERROR,
+
+    UPDATE_IDLE,
+    UPDATE_IN_PROGRESS,
+    UPDATE_SUCCESS,
+    UPDATE_FAILURE
 } from '../actions/bot';
 
 function runStateReducer(state, action) {
@@ -28,11 +43,60 @@ function runStateReducer(state, action) {
     }
 }
 
+function configReducer(state, action) {
+    switch (action.type) {
+        case BOT_CONFIG_UPDATE:
+            return {...state, config: action.config};
+        case BOT_CONFIG_UPDATE_START:
+            return {...state, updateState: UPDATE_IN_PROGRESS};
+        case BOT_CONFIG_UPDATE_SUCCESS:
+            return {...state, updateState: UPDATE_SUCCESS};
+        case BOT_CONFIG_UPDATE_FAILURE:
+            return {
+                ...state,
+                updateState: UPDATE_FAILURE,
+                errorMessage: action.errorMessage
+            };
+        case BOT_CONFIG_UPDATE_CLEAR:
+            return {...state, updateState: UPDATE_IDLE};
+        default:
+            return state;
+    }
+}
+
+function botChoiceReducer(state, action) {
+    switch (action.type) {
+        case BOT_GOT_BOT_CHOICES:
+            return { ...state, bots: action.bots };
+        case BOT_START_SELECT_BOT:
+            return {
+                ...state,
+                updateState: UPDATE_IN_PROGRESS,
+                selected: action.selected
+            };
+        case BOT_SELECT_BOT_SUCCESS:
+            return {
+                ...state,
+                updateState: UPDATE_SUCCESS,
+                selected: action.selected
+            };
+        case BOT_SELECT_BOT_ERROR:
+            return {
+                ...state,
+                updateState: UPDATE_IN_PROGRESS,
+                selected: action.selected,
+                errorMessage: action.errorMessage
+            };
+        default:
+            return state;
+    }
+}
+
 function botState(state, action) {
-    console.log(state);
-    console.log(action);
     return Object.assign({}, state, {
-        runState: runStateReducer(state.runState, action)
+        botChoice: botChoiceReducer(state.botChoice, action),
+        runState: runStateReducer(state.runState, action),
+        config: configReducer(state.config, action)
     });
 }
 
@@ -52,11 +116,17 @@ function bots(state = {}, action) {
     } else if (action.type === BOT_CONNECTED) {
         let defaultBotState = {
             id: action.botId,
-            runState: "Idle"
+            runState: "Idle",
+            botChoice: {
+                bots: [],
+                selected: "",
+                updateState: UPDATE_IDLE
+            },
+            config: {}
         };
         return Object.assign({}, state, {
             [action.botId]: defaultBotState
-        })
+        });
     } else if (action.type === BOT_DISCONNECTED) {
         let stateCopy = {...state};
         if (action.botId in stateCopy) {
@@ -65,7 +135,7 @@ function bots(state = {}, action) {
         return stateCopy;
     } else if (action.botId in state) {
         return Object.assign({}, state, {
-            [action.botId]: botState(state[action.botId])
+            [action.botId]: botState(state[action.botId], action)
         });
     } else {
         return state;

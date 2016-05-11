@@ -52,6 +52,10 @@ server.on('connection', function(socket) {
             if (obj.type == 'response' && obj['request-id'] == statusId) {
                 botId = obj.payload.pid.toString();
                 ipcSend('bot-connected', { botId });
+                ipcMain.on(botId, (event, arg) => {
+                    console.log("OUT: " + JSON.stringify(arg));
+                    encode.write(arg);
+                });
             }
         }
         else
@@ -61,7 +65,7 @@ server.on('connection', function(socket) {
     });
 
     ipcMain.on('message', (event, arg) => {
-        console.log("OUT: " + JSON.stringify(obj));
+        console.log("OUT: " + JSON.stringify(arg));
         encode.write(arg);
     });
 

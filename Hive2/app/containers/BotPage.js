@@ -4,7 +4,7 @@ import Bot from '../components/Bot';
 import * as BotActions from '../actions/bot';
 
 function mapStateToProps(state, ownProps) {
-    return state.bot.bots[ownProps.params.id];
+    return state.bot.bots[ownProps.params.botId];
 }
 
 function mapDispatchToProps(dispatch) {

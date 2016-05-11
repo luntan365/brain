@@ -7,6 +7,35 @@
 #include "classes/PaladinClass.h"
 #include "hadesmem/detail/trace.hpp"
 
+nlohmann::json
+GrindBotConfiguration::ToJson()
+{
+    nlohmann::json json({});
+    mVendorPosition.x = json["vendor_position_x"];
+    mVendorPosition.y = json["vendor_position_y"];
+    mVendorPosition.z = json["vendor_position_z"];
+    mRestHealthPercent = json["rest_health_percentage"];
+    mRestManaPercent = json["rest_mana_percentage"];
+    mDrinkName = json["drink_name"];
+    mFoodName = json["food_name"];
+    mCombatRange = json["combat_range"];
+    return json;
+}
+
+bool
+GrindBotConfiguration::FromJson(const nlohmann::json& json)
+{
+    mVendorPosition.x = json["vendor_position_x"];
+    mVendorPosition.y = json["vendor_position_y"];
+    mVendorPosition.z = json["vendor_position_z"];
+    mRestHealthPercent = json["rest_health_percentage"];
+    mRestManaPercent = json["rest_mana_percentage"];
+    mDrinkName = json["drink_name"];
+    mFoodName = json["food_name"];
+    mCombatRange = json["combat_range"];
+    return true;
+}
+
 GrindBot::GrindBot(MoveMapManager* pMoveMapManager)
     : mConfig()
     , mPathTracker(pMoveMapManager, WoWPlayer(), 3.0)
@@ -30,6 +59,12 @@ void GrindBot::OnStart()
 
 void GrindBot::OnStop()
 {
+}
+
+IBotConfig*
+GrindBot::GetConfig()
+{
+    return &mConfig;
 }
 
 std::vector<WoWUnit> GetLootableUnits(const std::vector<WoWUnit>& units)

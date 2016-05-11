@@ -2,28 +2,44 @@
   position: absolute;
 }
 
-.counter {
-  top: 30%;
-  left: 45%;
-  letter-spacing: -.025em;
+.container {
+  width: 80%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.header {
+    font-size: 50px;
+    font-weight: bolder;
+    padding: 20px;
+    border-bottom: 1px solid;
+    margin-bottom: 20px;
+}
+
+.data {
+    text-align: left;
+    width: 40%;
+    margin: 0 auto;
 }
 
 .btnGroup {
-  top: 50px;
-  width: 480px;
+    margin-top: 20px;
+    border-top: 1px solid;
+    padding: 10px;
 }
 
-.btn {
-  font-size: 1.6rem;
-  font-weight: bold;
-  background-color: #fff;
-  border-radius: 20%;
+.button {
+  font-size: 20px;
+  font-weight: light;
+  border: 1px solid white;
+  color: #CCC;
+  background-color: #333;
   margin: 10px;
   width: 100px;
-  height: 100px;
-  opacity: .7;
   cursor: pointer;
-  font-family: Arial, Helvetica, Helvetica Neue;
+  display: inline-block;
+  text-align: center;
+  padding: 20px;
 }
 
 .btn:hover {

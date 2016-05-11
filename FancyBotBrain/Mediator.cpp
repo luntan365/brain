@@ -6,6 +6,27 @@
 using namespace std::chrono_literals;
 using boost::asio::ip::tcp;
 
+template <typename T>
+IBot* MakeBot(MoveMapManager* pMMM)
+{
+    return new T(pMMM);
+}
+
+typedef std::function<IBot*(MoveMapManager*)> MakeBotFn;
+const std::unordered_map<std::string, MakeBotFn> botFactory({
+    {"GrindBot", &MakeBot<GrindBot>}
+});
+
+std::vector<std::string> GetBotNames()
+{
+    std::vector<std::string> botNames;
+    for (const auto& kv : botFactory)
+    {
+        botNames.push_back(kv.first);
+    }
+    return botNames;
+}
+
 Mediator::~Mediator()
 {
     Stop();
@@ -51,6 +72,7 @@ Mediator::Stop()
 Mediator::Mediator()
     : mMoveMapManager()
     , mpControl()
+    , mSelectedBot("")
     , mpBot()
     , mMessageMutex()
     , mMessageQueue()
@@ -110,6 +132,41 @@ Mediator::HandleControlRequests()
             payload["pid"] = GetCurrentProcessId();
             success = true;
         }
+        else if (type == "config")
+        {
+            if (mpBot) {
+                payload = mpBot->GetConfig()->ToJson();
+            }
+            success = true;
+        }
+        else if (type == "set-config")
+        {
+            if (mpBot) {
+                auto newConfig = json["payload"];
+                success = mpBot->GetConfig()->FromJson(newConfig);
+            }
+        }
+        else if (type == "query-bots")
+        {
+            payload["bots"] = GetBotNames();
+            payload["selected"] = mSelectedBot;
+            success = true;
+        }
+        else if (type == "set-bot")
+        {
+            auto name = json["payload"]["bot"];
+            if (botFactory.find(name) == botFactory.end())
+            {
+                success = false;
+            }
+            else
+            {
+                mSelectedBot = name;
+                mpBot.reset(botFactory.at(name)(&mMoveMapManager));
+            }
+            payload["selected"] = mSelectedBot;
+        }
+
         nlohmann::json response;
         response["payload"] = payload;
         response["type"] = "response";
@@ -188,7 +245,6 @@ Mediator::StartBot()
 {
     if (!mBotRunning)
     {
-        mpBot.reset(new GrindBot(&mMoveMapManager));
         mStartBot = true;
         mStopBot = false;
     }

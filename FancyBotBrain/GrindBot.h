@@ -1,21 +1,23 @@
 #pragma once
 
 #include "IBot.h"
+#include "IBotConfig.h"
 #include "ICustomClass.h"
 #include "PathTracker.h"
 
 class MoveMapManager;
 
-struct GrindBotConfiguration
+struct GrindBotConfiguration : public IBotConfig
 {
-    Position mVendorPosition;
+    virtual nlohmann::json ToJson();
 
+    virtual bool FromJson(const nlohmann::json& json);
+
+    Position mVendorPosition;
     float mRestManaPercent;
     float mRestHealthPercent;
-
     std::string mDrinkName;
     std::string mFoodName;
-
     float mCombatRange;
 };
 
@@ -28,6 +30,8 @@ public:
     virtual void OnStart();
 
     virtual void OnStop();
+
+    virtual IBotConfig* GetConfig();
 
     virtual concurrency::task<void> Tick(GameState& state);
 
