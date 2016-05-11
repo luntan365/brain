@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import styles from './Bot.css';
 import BotSelector from './BotSelector';
+import BotSummary from '../containers/BotSummaryPage';
 
 class Bot extends Component {
   static propTypes = {
@@ -9,7 +10,8 @@ class Bot extends Component {
     requestStop: PropTypes.func.isRequired,
     getConfig: PropTypes.func.isRequired,
     runState: PropTypes.string.isRequired,
-    config: PropTypes.object.isRequired
+    config: PropTypes.object.isRequired,
+    notFound: PropTypes.bool.isRequired
   };
 
   render() {
@@ -21,12 +23,16 @@ class Bot extends Component {
         config,
         runState,
         requestBotChoices,
-        selectBot
+        selectBot,
+        notFound
     } = this.props;
     let configFields;
-    if (config) {
-        configFields = Object.keys(config).map(key => {
-            let value = config[key];
+    if (notFound || notFound === undefined) {
+        return <BotSummary />
+    }
+    if (config.config) {
+        configFields = Object.keys(config.config).map(key => {
+            let value = config.config[key];
             return (
                 <div className={styles.configField}>
                     <div className={styles.configLabel}>

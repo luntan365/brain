@@ -122,7 +122,10 @@ function bots(state = {}, action) {
                 selected: "",
                 updateState: UPDATE_IDLE
             },
-            config: {}
+            config: {
+                config: {},
+                updateState: UPDATE_IDLE
+            }
         };
         return Object.assign({}, state, {
             [action.botId]: defaultBotState
