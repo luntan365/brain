@@ -26,15 +26,15 @@ class BotConfig extends Component {
       });
       return (
           <div className={styles.configGroup}>
+              <div className={styles.configHeader}>
+                SETTINGS
+              </div>
               <form onSubmit={(e) => this.onSubmit(e)}>
                   {configFields}
-                  <div className={styles.configField}>
-                      <div className={styles.configLabel}>
-                      </div>
+                  <div className={styles.submitButton}>
                       <button
                           type="submit"
-                          className={styles.submitButton}
-                          className="button">
+                          className={`button`}>
                           SUBMIT
                       </button>
                   </div>

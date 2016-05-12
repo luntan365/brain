@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mutex>
+#include "json.hpp"
 #include "WoWObjectManager.h"
 
 class GameState
@@ -17,6 +18,8 @@ public:
     bool GetIsInGame() const;
 
     WoWObjectManager& ObjectManager();
+
+    nlohmann::json ToJson() const;
 
 private:
 	GameState();

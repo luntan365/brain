@@ -36,6 +36,20 @@ a:hover {
   cursor: pointer;
 }
 
+.flexButton {
+    font-size: 16px;
+    font-weight: light;
+    border: 1px solid white;
+    color: #CCC;
+    background-color: #333;
+    flex-grow: 1;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+    padding: 10px;
+    margin: 10px;
+}
+
 .button {
   font-size: 20px;
   font-weight: light;
@@ -53,4 +67,33 @@ a:hover {
 .btn:hover {
   color: white;
   background-color: rgba(0, 0, 0, 0.5);
+}
+
+.inputField {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.inputLabel {
+    display: inline-block;
+    white-space: nowrap;
+    flex: 1 1 0;
+}
+
+.input {
+    display: inline-block;
+    flex: 1 1 0;
+    min-width: 100px;
+}
+
+.input input {
+    width: 100%;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 }

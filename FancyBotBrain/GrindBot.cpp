@@ -8,6 +8,31 @@
 #include "hadesmem/detail/trace.hpp"
 
 nlohmann::json
+GrindBotProfile::ToJson()
+{
+    nlohmann::json json({});
+    json["positions"] = nlohmann::json::array();
+    for (const auto& p : mGrindPositions)
+    {
+        json["positions"].push_back(p.ToJson());
+    }
+    return json;
+}
+
+bool
+GrindBotProfile::FromJson(const nlohmann::json& json)
+{
+    mGrindPositions.clear();
+    for (const auto& posObj : json["positions"])
+    {
+        Position p;
+        p.FromJson(posObj);
+        mGrindPositions.push_back(p);
+    }
+    return true;
+}
+
+nlohmann::json
 GrindBotConfiguration::ToJson()
 {
     nlohmann::json json({});
@@ -19,6 +44,7 @@ GrindBotConfiguration::ToJson()
     json["drink_name"] = mDrinkName;
     json["food_name"] = mFoodName;
     json["combat_range"] = mCombatRange;
+    json["max_grind_distance"] = mGrindMaxDistance;
     return json;
 }
 
@@ -33,6 +59,7 @@ GrindBotConfiguration::FromJson(const nlohmann::json& json)
     mDrinkName = json["drink_name"];
     mFoodName = json["food_name"];
     mCombatRange = json["combat_range"];
+    mGrindMaxDistance = json["max_grind_distance"];
     return true;
 }
 
@@ -55,6 +82,7 @@ void GrindBot::OnStart()
     PaladinConfig config(mConfig);
     mConfig = config;
     mpClass.reset(new PaladinClass(config, this));
+    mFirstTick = true;
 }
 
 void GrindBot::OnStop()
@@ -65,6 +93,12 @@ IBotConfig*
 GrindBot::GetConfig()
 {
     return &mConfig;
+}
+
+IBotConfig*
+GrindBot::GetProfile()
+{
+    return &mProfile;
 }
 
 std::vector<WoWUnit> GetLootableUnits(const std::vector<WoWUnit>& units)
@@ -198,6 +232,41 @@ GrindBot::DoBuff(const WoWPlayer& me, GameState& state)
     });
 }
 
+void GrindBot::InitializeGrindPositions(const WoWPlayer& me)
+{
+    const auto mePos = me.GetPosition();
+    const auto& positions = mProfile.mGrindPositions;
+    float minDistance = mePos.DistanceSquared(positions.at(0));
+    uint32_t minIndex = 0;
+    for (uint32_t index = 1; index < positions.size(); index++)
+    {
+        const auto& position = positions.at(index);
+        auto d = mePos.DistanceSquared(position);
+        if (d < minDistance)
+        {
+            minDistance = d;
+            minIndex = index;
+        }
+    }
+    mGrindPositionIndex = minIndex;
+}
+
+void GrindBot::UpdateGrindPosition(const WoWPlayer& me)
+{
+    auto d = me.GetPosition().Distance2d(GetGrindPosition());
+    if (d < 10.0)
+    {
+        auto totalGrindSpots = mProfile.mGrindPositions.size();
+        auto nextIndex = (mGrindPositionIndex + 1) % totalGrindSpots;
+        mGrindPositionIndex = nextIndex; 
+    }
+}
+
+Position GrindBot::GetGrindPosition()
+{
+    return mProfile.mGrindPositions.at(mGrindPositionIndex);
+}
+
 concurrency::task<void>
 GrindBot::Tick(GameState& state)
 {
@@ -207,7 +276,13 @@ GrindBot::Tick(GameState& state)
     }
     auto& irc = BotIrcClient::Instance();
     const auto& me = state.ObjectManager().GetPlayer();
+    if (mFirstTick)
+    {
+        InitializeGrindPositions(me);
+        mFirstTick = false;
+    }
     mPathTracker.SetPlayer(me);
+    UpdateGrindPosition(me);
 
     // TODO
     // UpdateCurrentMap(me)
@@ -280,11 +355,24 @@ GrindBot::Tick(GameState& state)
     {
         const auto& enemyUnits = state.ObjectManager().GetEnemyUnits();
         const auto& attackableUnits = GetAttackableUnits(me, enemyUnits);
-        const auto& losUnitsTask = GetInLosUnits(me, attackableUnits);
-        const auto closestUnit = GetClosestUnit(me, attackableUnits);
+        const Circle grindZone(GetGrindPosition(), mConfig.mGrindMaxDistance);
+        const auto inZoneUnits = FilterUnits(
+            attackableUnits,
+            [&grindZone](const WoWUnit& unit)
+            {
+                return grindZone.ContainsPoint(unit.GetPosition());
+            }
+        );
+        const auto& losUnitsTask = GetInLosUnits(me, inZoneUnits);
+        const auto closestUnit = GetClosestUnit(me, inZoneUnits);
         return losUnitsTask
             .then([this, &me, &irc, &state, currentPosition, closestUnit]
                     (const std::vector<WoWUnit>& losUnits) {
+                if (losUnits.empty())
+                {
+                    MoveTo(me, GetGrindPosition());
+                    return mPathTracker.Tick();
+                }
                 const auto closestLosUnit = GetClosestUnit(me, losUnits);
                 if (currentPosition.Distance(closestLosUnit.GetPosition())
                     < mConfig.mCombatRange)
@@ -307,5 +395,6 @@ GrindBot::Tick(GameState& state)
                 }
             });
     }
+
     return mPathTracker.Tick();
 }

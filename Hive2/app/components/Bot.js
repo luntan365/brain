@@ -4,6 +4,7 @@ import styles from './Bot.css';
 import BotConfig from './BotConfig';
 import BotSelector from './BotSelector';
 import BotSummary from '../containers/BotSummaryPage';
+import ProfileConfig from './ProfileConfig';
 
 class Bot extends Component {
   static propTypes = {
@@ -22,12 +23,16 @@ class Bot extends Component {
         requestStart,
         requestStop,
         config,
+        gameState,
         runState,
+        profile,
         requestBotChoices,
         selectBot,
         notFound,
         updateConfigField,
-        requestConfigUpdate
+        requestConfigUpdate,
+        addProfilePosition,
+        updateAddPosition,
     } = this.props;
     let configSection;
     if (notFound || notFound === undefined) {
@@ -57,6 +62,7 @@ class Bot extends Component {
             <div className={styles.data}>
                 State: {runState} <br/>
                 Pid: 12345 <br/>
+                Game: <pre>{JSON.stringify(gameState, null, 2)}</pre>
             </div>
 
             <div className={styles.botSelector}>
@@ -68,13 +74,21 @@ class Bot extends Component {
                     />
             </div>
 
-            {configSection}
+            <div className={styles.row}>
+                {configSection}
+                <ProfileConfig
+                    {...profile}
+                    gameState={gameState}
+                    botId={id}
+                    updateAddPosition={updateAddPosition}
+                    addProfilePosition={addProfilePosition}/>
+            </div>
 
             <div className={styles.btnGroup}>
-              <div className="button" onClick={requestStart}>
+              <div className="button" onClick={() => requestStart(id)}>
                 START
               </div>
-              <div className="button" onClick={requestStop}>
+              <div className="button" onClick={() => requestStop(id)}>
                 STOP
               </div>
             </div>

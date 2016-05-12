@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include "json.hpp"
 #include "WoWInventory.h"
 #include "WoWObject.h"
 #include "WoWPlayer.h"
@@ -47,6 +48,8 @@ public:
     const UnitContainer& Units() const;
 
     const UnitContainer& GetEnemyUnits() const;
+
+    nlohmann::json ToJson() const;
 
 private:
     void NewUnit(const WoWObject& object);

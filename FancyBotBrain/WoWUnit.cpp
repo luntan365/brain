@@ -13,6 +13,11 @@ WoWUnit WoWUnit::Read(void* pObject)
 void WoWUnit::Read(WoWUnit* pUnit, void* pObject)
 {
     WoWObject::Read(pUnit, pObject);
+    auto address = pUnit->GetAddress();
+    ReadOffsetInto(AddOffset(address, OBJ_POS_X), &pUnit->mPosition.x);
+    ReadOffsetInto(AddOffset(address, OBJ_POS_Y), &pUnit->mPosition.y);
+    ReadOffsetInto(AddOffset(address, OBJ_POS_Z), &pUnit->mPosition.z);
+    ReadOffsetInto(AddOffset(address, OBJ_ROTATION), &pUnit->mRotation);
     auto pDescriptor = GetDataPointer(pObject);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_HEALTH), &pUnit->mHealth);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_MAX_HEALTH), &pUnit->mMaxHealth);

@@ -3,9 +3,18 @@
 }
 
 .container {
-  width: 80%;
-  margin: 0 auto;
-  text-align: center;
+    width: 80%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    margin-top: 20px;
 }
 
 .header {
@@ -18,8 +27,6 @@
 
 .data {
     text-align: left;
-    width: 40%;
-    margin: 0 auto;
 }
 
 .btnGroup {

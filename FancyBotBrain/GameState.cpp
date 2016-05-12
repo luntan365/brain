@@ -68,3 +68,20 @@ WoWObjectManager& GameState::ObjectManager()
 {
     return mObjectManager;
 }
+
+
+nlohmann::json GameState::ToJson() const
+{
+    if (mIsInGame)
+    {
+        auto j = mObjectManager.ToJson();
+        j["in_game"] = true;
+        return j;
+    }
+    else
+    {
+        nlohmann::json j({});
+        j["in_game"] = false;
+        return j;
+    }
+}

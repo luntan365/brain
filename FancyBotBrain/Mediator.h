@@ -38,7 +38,15 @@ private:
 
     void StopBot();
 
+    void SendGameState(const nlohmann::json& json);
+
+    void TimerLoop();
+
 private:
+    boost::asio::io_service mIoService;
+    boost::posix_time::time_duration mTimerInterval;
+    boost::asio::deadline_timer mTimer;
+
     MoveMapManager mMoveMapManager;
     std::unique_ptr<ControlClient> mpControl;
 

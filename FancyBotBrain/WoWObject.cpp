@@ -25,10 +25,6 @@ void WoWObject::Read(WoWObject* pObject, void* address)
     pObject->mAddress = address;
     ReadOffsetInto(AddOffset(address, OBJ_TYPE), &pObject->mType);
 	ReadOffsetInto(AddOffset(address, GUID_OFFSET), &pObject->mGUID);
-    ReadOffsetInto(AddOffset(address, OBJ_POS_X), &pObject->mPosition.x);
-    ReadOffsetInto(AddOffset(address, OBJ_POS_Y), &pObject->mPosition.y);
-    ReadOffsetInto(AddOffset(address, OBJ_POS_Z), &pObject->mPosition.z);
-    ReadOffsetInto(AddOffset(address, OBJ_ROTATION), &pObject->mRotation);
 }
 
 void* WoWObject::GetDataPointer(void* pObject)

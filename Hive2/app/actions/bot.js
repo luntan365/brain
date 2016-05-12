@@ -19,6 +19,7 @@ export const BOT_GOT_BOT_CHOICES = "BOT_GOT_BOT_CHOICES";
 export const BOT_START_SELECT_BOT = "BOT_START_SELECT_BOT";
 export const BOT_SELECT_BOT_SUCCESS = "BOT_SELECT_BOT_SUCCESS";
 export const BOT_SELECT_BOT_ERROR = "BOT_SELECT_BOT_ERROR";
+export const BOT_UPDATE_GAME_STATE = "BOT_UPDATE_GAME_STATE";
 
 export const UPDATE_IDLE = "UPDATE_IDLE";
 export const UPDATE_IN_PROGRESS = "UPDATE_IN_PROGRESS";
@@ -77,6 +78,18 @@ export function disconnected(botId) {
 export function launched() {
     return {
         type: BOT_LAUNCHED
+    };
+}
+
+export function updateGameState(botId, state) {
+    return (dispatch, getState) => {
+        if (getState().bot.bots[botId].gameState != state) {
+            dispatch({
+                type: BOT_UPDATE_GAME_STATE,
+                botId,
+                state
+            });
+        }
     };
 }
 

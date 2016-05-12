@@ -8,8 +8,7 @@
 * Better pathing
 
 * Quest log info
-* Autoattack
-* LoS
+* Place Autoattack action bar slot
 
 * Autologin
 
@@ -19,12 +18,15 @@
 
 
 * "Productization"
-    * GUI
     * Clean load / unload
-    * Handle multiple instances
     * Authentication
 
 
 * Don't attack mobs tagged by other players
 * Can get stuck thinking we're close enough when mob is above you
 * GrindBot::StopMoving needs to be accessible via CustomClasses
+
+## PALADIN
+* Holy Light
+* Divine Protection
+* Auras

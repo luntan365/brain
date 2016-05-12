@@ -1,0 +1,38 @@
+
+.profileContainer {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.profileHeader {
+    text-align: center;
+    font-weight: bold;
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.profileRow {
+
+}
+
+.profileList {
+    margin: 0px 10px;
+    flex: 1 1 0;
+}
+
+.profileList select {
+    width: 100%;
+}
+
+.profileAdd {
+    margin: 0px 10px;
+    flex: 1 1 0;
+}
+
+.buttonGroup {
+    display: flex;
+    flex-direction: row;
+}

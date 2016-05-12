@@ -165,3 +165,11 @@ WoWObjectManager::GetEnemyUnits() const
 {
     return mEnemyUnits;
 }
+
+nlohmann::json
+WoWObjectManager::ToJson() const
+{
+    nlohmann::json j;
+    j["player_position"] = mPlayer.GetPosition().ToJson();
+    return j;
+}

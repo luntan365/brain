@@ -32,7 +32,6 @@ export default class BotSelector extends Component {
                         {botOptions}
                     </select>
                 </div>
-                {this.props.updateState}
             </div>
         );
     }

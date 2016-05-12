@@ -7,6 +7,15 @@
 
 class MoveMapManager;
 
+struct GrindBotProfile : public IBotConfig
+{
+    virtual nlohmann::json ToJson();
+
+    virtual bool FromJson(const nlohmann::json& json);
+
+    std::vector<Position> mGrindPositions;
+};
+
 struct GrindBotConfiguration : public IBotConfig
 {
     virtual nlohmann::json ToJson();
@@ -19,6 +28,8 @@ struct GrindBotConfiguration : public IBotConfig
     std::string mDrinkName;
     std::string mFoodName;
     float mCombatRange;
+    Position mGrindPosition;
+    float mGrindMaxDistance;
 };
 
 
@@ -32,6 +43,8 @@ public:
     virtual void OnStop();
 
     virtual IBotConfig* GetConfig();
+
+    virtual IBotConfig* GetProfile();
 
     virtual concurrency::task<void> Tick(GameState& state);
 
@@ -48,14 +61,24 @@ private:
 
     concurrency::task<void> DoBuff(const WoWPlayer& me, GameState& state);
 
+    void InitializeGrindPositions(const WoWPlayer& me);
+
+    void UpdateGrindPosition(const WoWPlayer& me);
+
+    Position GetGrindPosition();
+
+private:
     GrindBotConfiguration mConfig;
+    GrindBotProfile mProfile;
     std::unique_ptr<ICustomClass> mpClass;
     PathTracker mPathTracker;
     uint32_t mCurrentMapId;
 
     bool mBuff;
     bool mRest;
+    bool mFirstTick;
 
+    uint32_t mGrindPositionIndex;
 };
 
 // TODO: move these somewhere more appropriate

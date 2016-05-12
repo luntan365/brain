@@ -17,5 +17,7 @@ public:
 
     virtual IBotConfig* GetConfig() = 0;
 
+    virtual IBotConfig* GetProfile() = 0;
+
     virtual concurrency::task<void> Tick(GameState& state) = 0;
 };

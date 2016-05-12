@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import styles from './BotConfig.css';
+import Input from './Input';
 
 String.prototype.capitalize = function() {
     return this.replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });
@@ -30,17 +31,12 @@ class ConfigField extends Component {
                 break;
         }
         return (
-            <div className={styles.configField}>
-                <div className={styles.configLabel}>
-                    {formattedKey}
-                </div>
-                <div className={styles.configInput}>
-                    <input
-                        type={inputType}
-                        value={value}
-                        onChange={(e) => this.onChange(e)}/>
-                </div>
-            </div>
+            <Input
+                label={formattedKey}
+                value={value}
+                type={inputType}
+                onChange={(e) => this.onChange(e)}
+                />
         );
     }
 

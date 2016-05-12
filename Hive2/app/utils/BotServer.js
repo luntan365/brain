@@ -13,6 +13,17 @@ class BotServer {
             this.bots.add(arg.botId);
             this.dispatch(botActions.connected(arg.botId));
             this.dispatch(botActions.getConfig(arg.botId));
+
+            ipcRenderer.on(arg.botId, (event, message) => {
+                if (message.type === 'update') {
+                    this.dispatch(
+                        botActions.updateGameState(
+                            arg.botId,
+                            message.payload
+                        )
+                    );
+                }
+            })
         });
 
         ipcRenderer.on('bot-disconnected', (event, arg) => {

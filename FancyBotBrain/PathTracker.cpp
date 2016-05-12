@@ -26,7 +26,13 @@ PathTracker::Tick()
     }
     if (!ReachedDestination())
     {
-        return mPlayer.ClickToMove(mPath.front());
+        return mPlayer.ClickToMove(
+            GetPointOnPath(
+                mPlayer.GetPosition(),
+                mPath.front(),
+                10 
+            )
+        );
     }
     return concurrency::task_from_result();
 }

@@ -21,11 +21,19 @@ import {
     BOT_SELECT_BOT_SUCCESS,
     BOT_SELECT_BOT_ERROR,
 
+    BOT_UPDATE_GAME_STATE,
+
     UPDATE_IDLE,
     UPDATE_IN_PROGRESS,
     UPDATE_SUCCESS,
     UPDATE_FAILURE
 } from '../actions/bot';
+
+import {
+    PROFILE_UPDATED,
+    PROFILE_CLEAR_ADD_FIELDS,
+    PROFILE_UPDATE_ADD_FIELD
+} from '../actions/profile';
 
 function runStateReducer(state, action) {
     console.log(action);
@@ -104,11 +112,45 @@ function botChoiceReducer(state, action) {
     }
 }
 
+function gameStateReducer(state, action) {
+    switch (action.type) {
+        case BOT_UPDATE_GAME_STATE:
+            return action.state;
+    }
+    return state;
+}
+
+function profileReducer(state, action) {
+    switch (action.type) {
+        case PROFILE_UPDATED:
+            return {
+                ...state,
+                positions: action.positions
+            }
+        case PROFILE_CLEAR_ADD_FIELDS:
+            let newState = {...state};
+            delete newState.addX;
+            delete newState.addY;
+            delete newState.addZ;
+            return newState;
+        case PROFILE_UPDATE_ADD_FIELD:
+            return {
+                ...state,
+                'x': action.value,
+                ["add" + action.field.toUpperCase()]: action.value
+            }
+        default:
+            return state;
+    }
+}
+
 function botState(state, action) {
     return Object.assign({}, state, {
         botChoice: botChoiceReducer(state.botChoice, action),
+        gameState: gameStateReducer(state.gameState, action),
         runState: runStateReducer(state.runState, action),
-        config: configReducer(state.config, action)
+        config: configReducer(state.config, action),
+        profile: profileReducer(state.profile, action),
     });
 }
 
@@ -134,9 +176,13 @@ function bots(state = {}, action) {
                 selected: "",
                 updateState: UPDATE_IDLE
             },
+            gameState: {},
             config: {
                 config: {},
                 updateState: UPDATE_IDLE
+            },
+            profile: {
+                positions: []
             }
         };
         return Object.assign({}, state, {

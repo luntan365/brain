@@ -17,6 +17,13 @@ Position::Position(const Vector3& v)
 {
 }
 
+void Position::FromJson(const nlohmann::json& json)
+{
+    x = json["x"];
+    y = json["y"];
+    z = json["z"];
+}
+
 float Position::DistanceSquared(const Vector3& other) const
 {
     auto dx = other.x - x;
@@ -28,6 +35,27 @@ float Position::DistanceSquared(const Vector3& other) const
 float Position::Distance(const Vector3& other) const
 {
     return sqrt(DistanceSquared(other));
+}
+
+float Position::Distance2dSquared(const Vector3& other) const
+{
+    auto dx = other.x - x;
+    auto dy = other.y - y;
+    return dx * dx + dy * dy;
+}
+
+float Position::Distance2d(const Vector3& other) const
+{
+    return sqrt(Distance2dSquared(other));
+}
+
+nlohmann::json Position::ToJson() const
+{
+    nlohmann::json j;
+    j["x"] = x;
+    j["y"] = y;
+    j["z"] = z;
+    return j;
 }
 
 bool Position::operator==(const Vector3& v) const
@@ -51,4 +79,31 @@ Intersection::Intersection()
     , z(0.0)
     , rotation(0.0)
 {
+}
+
+Circle::Circle()
+    : center()
+    , radius(0.0)
+{
+}
+
+Circle::Circle(const Vector3& v, float r)
+    : center(v)
+    , radius(r)
+{
+}
+
+bool Circle::ContainsPoint(const Vector3& p) const
+{
+    return center.Distance2dSquared(p) < radius * radius;
+}
+
+Position GetPointOnPath(const Vector3& from, const Vector3 to, float d)
+{
+    auto magnitude = Position(from).DistanceSquared(to);
+    // unit vector * distance 
+    auto x = (to.x - from.x) / magnitude * d;
+    auto y = (to.y - from.y) / magnitude * d;
+    auto z = (to.z - from.z) / magnitude * d;
+    return Position(x, y, z);
 }

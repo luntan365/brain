@@ -2,6 +2,7 @@
 
 #include "BotIrcClient.h"
 #include <chrono>
+#include <future>
 
 using namespace std::chrono_literals;
 using boost::asio::ip::tcp;
@@ -51,9 +52,8 @@ void Mediator::Start()
 
     SetBotByName(GetBotNames()[0]);
 
-    mThreads.emplace_back([this] {
-        StartControlClient();
-    });
+    StartControlClient();
+
     mThreads.emplace_back([this] {
         RunBotThread();
     });
@@ -72,7 +72,10 @@ Mediator::Stop()
 }
 
 Mediator::Mediator()
-    : mMoveMapManager()
+    : mIoService()
+    , mTimerInterval(boost::posix_time::milliseconds(1000))
+    , mTimer(mIoService, mTimerInterval)
+    , mMoveMapManager()
     , mpControl()
     , mSelectedBot("")
     , mpBot()
@@ -80,25 +83,29 @@ Mediator::Mediator()
     , mMessageQueue()
     , mThreads()
 {
-}
-
-void
-Mediator::StartControlClient()
-{
-    boost::asio::io_service ioService;
-    tcp::resolver resolver(ioService);
+    tcp::resolver resolver(mIoService);
     tcp::resolver::query query("localhost", "1337");
     auto endpointIterator = resolver.resolve(query);
     mpControl.reset(
         new ControlClient(
-            ioService,
+            mIoService,
             endpointIterator,
             [this](const nlohmann::json& json) {
                 OnControlMessage(json);
             }
         )
     );
-    ioService.run();
+    mTimer.async_wait([this] (const boost::system::error_code&) {
+        TimerLoop();
+    });
+}
+
+void
+Mediator::StartControlClient()
+{
+    mThreads.emplace_back([this] () {
+        mIoService.run();
+    });
 }
 
 void
@@ -136,14 +143,16 @@ Mediator::HandleControlRequests()
         }
         else if (type == "config")
         {
-            if (mpBot) {
+            if (mpBot)
+            {
                 payload = mpBot->GetConfig()->ToJson();
             }
             success = true;
         }
         else if (type == "set-config")
         {
-            if (mpBot) {
+            if (mpBot)
+            {
                 auto newConfig = json["payload"];
                 success = mpBot->GetConfig()->FromJson(newConfig);
             }
@@ -166,6 +175,14 @@ Mediator::HandleControlRequests()
                 SetBotByName(name);
             }
             payload["selected"] = mSelectedBot;
+        }
+        else if (type == "set-profile")
+        {
+            if (mpBot)
+            {
+                auto newProfile = json["payload"];
+                success = mpBot->GetProfile()->FromJson(newProfile);
+            }
         }
 
         nlohmann::json response;
@@ -255,4 +272,25 @@ Mediator::StartBot()
         mStartBot = true;
         mStopBot = false;
     }
+}
+
+void
+Mediator::SendGameState(const nlohmann::json& payload)
+{
+    nlohmann::json response;
+    response["payload"] = payload;
+    response["type"] = "update";
+    mpControl->Write(response);
+}
+
+void
+Mediator::TimerLoop()
+{
+    auto& gs = GameState::Instance();
+    auto lock = gs.GetLock();
+    SendGameState(gs.ToJson());
+    mTimer.expires_at(mTimer.expires_at() + mTimerInterval);
+    mTimer.async_wait([this] (const boost::system::error_code&) {
+        TimerLoop();
+    });
 }
