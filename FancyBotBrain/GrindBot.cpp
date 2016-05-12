@@ -11,14 +11,14 @@ nlohmann::json
 GrindBotConfiguration::ToJson()
 {
     nlohmann::json json({});
-    mVendorPosition.x = json["vendor_position_x"];
-    mVendorPosition.y = json["vendor_position_y"];
-    mVendorPosition.z = json["vendor_position_z"];
-    mRestHealthPercent = json["rest_health_percentage"];
-    mRestManaPercent = json["rest_mana_percentage"];
-    mDrinkName = json["drink_name"];
-    mFoodName = json["food_name"];
-    mCombatRange = json["combat_range"];
+    json["vendor_position_x"] = mVendorPosition.x;
+    json["vendor_position_y"] = mVendorPosition.y;
+    json["vendor_position_z"] = mVendorPosition.z;
+    json["rest_health_percentage"] = mRestHealthPercent;
+    json["rest_mana_percentage"] = mRestManaPercent;
+    json["drink_name"] = mDrinkName;
+    json["food_name"] = mFoodName;
+    json["combat_range"] = mCombatRange;
     return json;
 }
 

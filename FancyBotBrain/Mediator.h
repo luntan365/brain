@@ -32,6 +32,8 @@ private:
 
     void BotIteration();
 
+    void SetBotByName(const std::string& name);
+
     void StartBot();
 
     void StopBot();

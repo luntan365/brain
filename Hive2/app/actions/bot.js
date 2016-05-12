@@ -9,6 +9,7 @@ export const BOT_ERROR = "BOT_ERROR";
 export const BOT_CONNECTED = "BOT_CONNECTED";
 export const BOT_DISCONNECTED = "BOT_DISCONNECTED";
 export const BOT_LAUNCHED = "BOT_LAUNCHED";
+export const BOT_CONFIG_FIELD_UPDATED = "BOT_CONFIG_FIELD_UPDATED";
 export const BOT_CONFIG_UPDATE = "BOT_CONFIG_UPDATE";
 export const BOT_CONFIG_UPDATE_START = "BOT_CONFIG_UPDATE_START";
 export const BOT_CONFIG_UPDATE_SUCCESS = "BOT_CONFIG_UPDATE_SUCCESS";
@@ -79,6 +80,15 @@ export function launched() {
     };
 }
 
+export function updateConfigField(botId, key, value) {
+    return {
+        type: BOT_CONFIG_FIELD_UPDATED,
+        botId,
+        key,
+        value
+    }
+}
+
 export function updateConfig(botId, config) {
     return {
         type: BOT_CONFIG_UPDATE,
@@ -129,6 +139,7 @@ export function requestBotChoices(botId) {
         botServer.request(botId, {type: 'query-bots'})
             .then(response => {
                 dispatch(gotBotChoices(botId, response.payload.bots));
+                dispatch(getConfig(botId));
             });
     };
 }
@@ -213,7 +224,7 @@ export function getConfig(botId) {
     }
 }
 
-export function updateConfig(botId, config) {
+export function requestConfigUpdate(botId, config) {
     return dispatch => {
         dispatch(startConfigUpdate(botId));
         botServer.request(botId, {

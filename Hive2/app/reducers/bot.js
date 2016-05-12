@@ -8,6 +8,8 @@ import {
     BOT_RUNNING,
     BOT_STOPPING,
     BOT_STOPPED,
+
+    BOT_CONFIG_FIELD_UPDATED,
     BOT_CONFIG_UPDATE,
     BOT_CONFIG_UPDATE_START,
     BOT_CONFIG_UPDATE_SUCCESS,
@@ -47,6 +49,16 @@ function configReducer(state, action) {
     switch (action.type) {
         case BOT_CONFIG_UPDATE:
             return {...state, config: action.config};
+        case BOT_CONFIG_FIELD_UPDATED:
+            console.log(state);
+            let newState = {
+                ...state,
+                config: Object.assign({}, state.config, {
+                    [action.key]: action.value
+                })
+            };
+            console.log(newState);
+            return newState;
         case BOT_CONFIG_UPDATE_START:
             return {...state, updateState: UPDATE_IN_PROGRESS};
         case BOT_CONFIG_UPDATE_SUCCESS:

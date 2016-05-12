@@ -49,6 +49,8 @@ void Mediator::Start()
     mMoveMapManager.Initialize("C:\\mmaps");
     irc.Log("Move Maps Loaded.");
 
+    SetBotByName(GetBotNames()[0]);
+
     mThreads.emplace_back([this] {
         StartControlClient();
     });
@@ -161,8 +163,7 @@ Mediator::HandleControlRequests()
             }
             else
             {
-                mSelectedBot = name;
-                mpBot.reset(botFactory.at(name)(&mMoveMapManager));
+                SetBotByName(name);
             }
             payload["selected"] = mSelectedBot;
         }
@@ -228,6 +229,12 @@ Mediator::BotIteration()
     {
         curTask.wait();
     }
+}
+
+void Mediator::SetBotByName(const std::string& name)
+{
+    mSelectedBot = name;
+    mpBot.reset(botFactory.at(name)(&mMoveMapManager));
 }
 
 void

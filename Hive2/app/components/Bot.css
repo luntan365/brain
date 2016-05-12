@@ -27,22 +27,3 @@
     border-top: 1px solid;
     padding: 10px;
 }
-
-.button {
-  font-size: 20px;
-  font-weight: light;
-  border: 1px solid white;
-  color: #CCC;
-  background-color: #333;
-  margin: 10px;
-  width: 100px;
-  cursor: pointer;
-  display: inline-block;
-  text-align: center;
-  padding: 20px;
-}
-
-.btn:hover {
-  color: white;
-  background-color: rgba(0, 0, 0, 0.5);
-}

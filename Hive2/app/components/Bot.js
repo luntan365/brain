@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import styles from './Bot.css';
+import BotConfig from './BotConfig';
 import BotSelector from './BotSelector';
 import BotSummary from '../containers/BotSummaryPage';
 
@@ -24,26 +25,23 @@ class Bot extends Component {
         runState,
         requestBotChoices,
         selectBot,
-        notFound
+        notFound,
+        updateConfigField,
+        requestConfigUpdate
     } = this.props;
-    let configFields;
+    let configSection;
     if (notFound || notFound === undefined) {
         return <BotSummary />
     }
     if (config.config) {
-        configFields = Object.keys(config.config).map(key => {
-            let value = config.config[key];
-            return (
-                <div className={styles.configField}>
-                    <div className={styles.configLabel}>
-                        {key}
-                    </div>
-                    <div className={styles.configInput}>
-                        <input type="text" value={value}/>
-                    </div>
-                </div>
-            );
-        });
+        configSection = (
+            <BotConfig
+                config={config}
+                id={id}
+                updateConfigField={updateConfigField}
+                requestConfigUpdate={requestConfigUpdate}
+                />
+        );
     }
     return (
       <div>
@@ -70,15 +68,13 @@ class Bot extends Component {
                     />
             </div>
 
-            <div className={styles.configGroup}>
-                {configFields}
-            </div>
+            {configSection}
 
             <div className={styles.btnGroup}>
-              <div className={styles.button} onClick={requestStart}>
+              <div className="button" onClick={requestStart}>
                 START
               </div>
-              <div className={styles.button} onClick={requestStop}>
+              <div className="button" onClick={requestStop}>
                 STOP
               </div>
             </div>

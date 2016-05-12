@@ -1,0 +1,27 @@
+.configGroup {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid;
+}
+
+.configField {
+    text-align: left;
+    padding: 6px;
+}
+
+.configLabel {
+    display: inline-block;
+    width: 200px;
+}
+
+.configInput {
+    display: inline-block;
+    position: relative;
+    left: 50px;
+}
+
+.submitButton {
+    text-align: center;
+    position: relative;
+    left: 0px;
+}
