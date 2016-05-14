@@ -1,53 +1,50 @@
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import styles from './Bot.css';
-import BotConfig from './BotConfig';
-import BotSelector from './BotSelector';
 import BotSummary from '../containers/BotSummaryPage';
-import ProfileConfig from './ProfileConfig';
 
 class Bot extends Component {
   static propTypes = {
     requestStart: PropTypes.func.isRequired,
     requestStop: PropTypes.func.isRequired,
-    getConfig: PropTypes.func.isRequired,
     runState: PropTypes.string.isRequired,
-    config: PropTypes.object.isRequired,
     notFound: PropTypes.bool.isRequired
   };
 
   render() {
     const {
-        botChoice,
         id,
         requestStart,
         requestStop,
-        config,
-        gameState,
         runState,
-        profile,
-        requestBotChoices,
-        selectBot,
         notFound,
-        updateConfigField,
-        requestConfigUpdate,
-        addProfilePosition,
-        updateAddPosition,
     } = this.props;
-    let configSection;
     if (notFound || notFound === undefined) {
         return <BotSummary />
     }
-    if (config.config) {
-        configSection = (
-            <BotConfig
-                config={config}
-                id={id}
-                updateConfigField={updateConfigField}
-                requestConfigUpdate={requestConfigUpdate}
-                />
+    var tabs = [
+        {
+            title: "Overview",
+            page: ""
+        },
+        {
+            title: "Config",
+            page: "config"
+        },
+        {
+            title: "Profile",
+            page: "profile"
+        }
+    ].map(obj => {
+        let url = `/bots/${id}/${obj.page}`;
+        return (
+            <Link to={url}>
+                <div className={styles.tab}>
+                    {obj.title}
+                </div>
+            </Link>
         );
-    }
+    });
     return (
       <div>
         <div className={styles.backButton}>
@@ -59,30 +56,12 @@ class Bot extends Component {
             <div className={styles.header}>
                 BOT
             </div>
-            <div className={styles.data}>
-                State: {runState} <br/>
-                Pid: 12345 <br/>
-                Game: <pre>{JSON.stringify(gameState, null, 2)}</pre>
+
+            <div className={styles.tabGroup}>
+                {tabs}
             </div>
 
-            <div className={styles.botSelector}>
-                <BotSelector
-                    {...botChoice}
-                    botId={id}
-                    requestBotChoices={requestBotChoices}
-                    selectBot={selectBot}
-                    />
-            </div>
-
-            <div className={styles.row}>
-                {configSection}
-                <ProfileConfig
-                    {...profile}
-                    gameState={gameState}
-                    botId={id}
-                    updateAddPosition={updateAddPosition}
-                    addProfilePosition={addProfilePosition}/>
-            </div>
+            {this.props.children}
 
             <div className={styles.btnGroup}>
               <div className="button" onClick={() => requestStart(id)}>

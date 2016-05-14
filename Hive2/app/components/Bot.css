@@ -21,16 +21,22 @@
     font-size: 50px;
     font-weight: bolder;
     padding: 20px;
-    border-bottom: 1px solid;
-    margin-bottom: 20px;
-}
-
-.data {
-    text-align: left;
 }
 
 .btnGroup {
     margin-top: 20px;
     border-top: 1px solid;
     padding: 10px;
+}
+
+.tab {
+    padding: 10px;
+}
+
+.tabGroup {
+    display: flex;
+    flex-direction: row;
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    margin-bottom: 20px;
 }

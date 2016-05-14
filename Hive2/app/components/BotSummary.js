@@ -40,7 +40,6 @@ class BotSummary extends Component {
             });
         let botLinks = Object.keys(bots).map(key => {
             let bot = bots[key];
-            console.log(bot);
             return (
                 <BotLink
                     key={bot.id}

@@ -231,7 +231,7 @@ WoWPlayer::UseItemByName(const std::string& itemName) const
     {
         return maybeItem->Use();
     }
-    return concurrency::task<void>();
+    return concurrency::task_from_result();
 }
 
 bool
