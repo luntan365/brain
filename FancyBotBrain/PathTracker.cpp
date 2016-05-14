@@ -53,10 +53,10 @@ PathTracker::SetPlayer(const WoWPlayer& player)
 void
 PathTracker::SetDestination(const Position& position)
 {
-    if (position == mDestination)
-    {
-        return;
-    }
+    // if (position == mDestination)
+    // {
+    //     return;
+    // }
     mDestination = position;
     RegeneratePath();
 }

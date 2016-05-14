@@ -100,10 +100,17 @@ bool Circle::ContainsPoint(const Vector3& p) const
 
 Position GetPointOnPath(const Vector3& from, const Vector3 to, float d)
 {
-    auto magnitude = Position(from).DistanceSquared(to);
-    // unit vector * distance 
-    auto x = (to.x - from.x) / magnitude * d;
-    auto y = (to.y - from.y) / magnitude * d;
-    auto z = (to.z - from.z) / magnitude * d;
-    return Position(x, y, z);
+    auto magnitude = Position(from).Distance(to);
+    if (d < magnitude)
+    {
+        // unit vector * distance 
+        auto x = (to.x - from.x) / magnitude * d;
+        auto y = (to.y - from.y) / magnitude * d;
+        auto z = (to.z - from.z) / magnitude * d;
+        return Position(from.x + x, from.y + y, from.z + z);
+    }
+    else
+    {
+        return to;
+    }
 }
