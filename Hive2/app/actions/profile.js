@@ -3,11 +3,11 @@ export const PROFILE_UPDATED = "PROFILE_UPDATED";
 export const PROFILE_CLEAR_ADD_FIELDS = "PROFILE_CLEAR_ADD_FIELDS";
 export const PROFILE_UPDATE_ADD_FIELD = "PROFILE_UPDATE_ADD_FIELD";
 
-function updateProfile(botId, positions) {
+function updateProfile(botId, profile) {
     return {
         type: PROFILE_UPDATED,
         botId,
-        positions
+        profile
     }
 }
 
@@ -18,16 +18,20 @@ function profileClearAddFields(botId) {
     }
 }
 
-function updatePositions(botId, newPositions) {
+function updatePositions(botId, positions) {
+    return (dispatch, getState) => dispatch(setProfile(botId, {
+        ...getState().bot.bots[botId].profile,
+        positions
+    }));
+}
+
+export function setProfile(botId, profile) {
     return (dispatch) => {
         botServer.request(botId, {
             type: 'set-profile',
-            payload: {
-                positions: newPositions,
-            }
+            payload: profile 
         }).then(response => {
-            dispatch(updateProfile(botId, newPositions));
-            dispatch(profileClearAddFields(botId));
+            dispatch(updateProfile(botId, profile));
         });
     };
 }
@@ -39,6 +43,7 @@ export function addProfilePosition(botId, x, y, z) {
         let newPositions = newState.bot.bots[botId].profile.positions.slice();
         newPositions.push(position);
         dispatch(updatePositions(botId, newPositions));
+        dispatch(profileClearAddFields(botId));
     };
 }
 

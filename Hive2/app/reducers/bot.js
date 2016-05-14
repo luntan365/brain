@@ -125,7 +125,7 @@ function profileReducer(state, action) {
         case PROFILE_UPDATED:
             return {
                 ...state,
-                positions: action.positions
+                ...action.profile
             }
         case PROFILE_CLEAR_ADD_FIELDS:
             let newState = {...state};

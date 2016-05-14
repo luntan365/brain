@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import styles from './ProfileConfig.css';
 import Input from './Input';
+import { openJsonFile, saveJsonFile } from '../utils/Dialog';
 
 class ProfileConfig extends Component {
     static propTypes = {
@@ -14,6 +15,7 @@ class ProfileConfig extends Component {
         addProfilePosition: PropTypes.func.isRequired,
         updateAddPosition: PropTypes.func.isRequired,
         removeProfilePositions: PropTypes.func.isRequired,
+        setProfile: PropTypes.func.isRequired,
     };
 
     render() {
@@ -127,10 +129,16 @@ class ProfileConfig extends Component {
         this.props.removeProfilePositions(this.props.botId, indicies);
     }
 
-    onSave(e) {
+    onLoad(e) {
+        openJsonFile().then(data => {
+            this.props.setProfile(this.props.botId, data);
+        });
     }
 
-    onLoad(e) {
+    onSave(e) {
+        saveJsonFile({
+            positions: this.props.positions
+        });
     }
 }
 
