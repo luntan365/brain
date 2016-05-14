@@ -13,7 +13,6 @@ class ProfileConfig extends Component {
         addY: PropTypes.number,
         addZ: PropTypes.number,
         addProfilePosition: PropTypes.func.isRequired,
-        updateAddPosition: PropTypes.func.isRequired,
         removeProfilePositions: PropTypes.func.isRequired,
         setProfile: PropTypes.func.isRequired,
     };
@@ -43,12 +42,9 @@ class ProfileConfig extends Component {
                         </select>
                     </div>
                     <div className={styles.profileAdd}>
-                        <Input label="x" value={addX} type="text"
-                            onChange={e => this.updateAddPosition('x', e)}/>
-                        <Input label="y" value={addY} type="text"
-                            onChange={e => this.updateAddPosition('y', e)}/>
-                        <Input label="z" value={addZ} type="text"
-                            onChange={e => this.updateAddPosition('z', e)}/>
+                        <Input label="x" type="text" ref={(e) => this.addX = e}/>
+                        <Input label="y" type="text" ref={(e) => this.addY = e}/>
+                        <Input label="z" type="text" ref={(e) => this.addZ = e}/>
                     </div>
                 </div>
                 <div className={styles.buttonGroup}>
@@ -87,26 +83,13 @@ class ProfileConfig extends Component {
         );
     }
 
-    updateAddPosition(field, e) {
-        const n = Number(e.target.value);
-        if (n) {
-            this.props.updateAddPosition(
-                this.props.botId,
-                field,
-                n
-            );
-        }
-    }
-
     onAdd(e) {
-        const { botId, addX, addY, addZ, addProfilePosition } = this.props;
-        if (addX && addY && addZ) {
-            addProfilePosition(
-                botId,
-                Number(addX),
-                Number(addY),
-                Number(addZ)
-            );
+        const { botId, addProfilePosition } = this.props;
+        const x = Number(this.addX.getValue());
+        const y = Number(this.addY.getValue());
+        const z = Number(this.addZ.getValue());
+        if (x && y && z) {
+            addProfilePosition(botId, x, y, z);
         }
     }
 

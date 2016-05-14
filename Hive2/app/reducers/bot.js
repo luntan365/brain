@@ -127,18 +127,6 @@ function profileReducer(state, action) {
                 ...state,
                 ...action.profile
             }
-        case PROFILE_CLEAR_ADD_FIELDS:
-            let newState = {...state};
-            delete newState.addX;
-            delete newState.addY;
-            delete newState.addZ;
-            return newState;
-        case PROFILE_UPDATE_ADD_FIELD:
-            return {
-                ...state,
-                'x': action.value,
-                ["add" + action.field.toUpperCase()]: action.value
-            }
         default:
             return state;
     }

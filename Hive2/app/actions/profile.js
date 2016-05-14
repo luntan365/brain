@@ -11,13 +11,6 @@ function updateProfile(botId, profile) {
     }
 }
 
-function profileClearAddFields(botId) {
-    return {
-        type: PROFILE_CLEAR_ADD_FIELDS,
-        botId
-    }
-}
-
 function updatePositions(botId, positions) {
     return (dispatch, getState) => dispatch(setProfile(botId, {
         ...getState().bot.bots[botId].profile,
@@ -43,7 +36,6 @@ export function addProfilePosition(botId, x, y, z) {
         let newPositions = newState.bot.bots[botId].profile.positions.slice();
         newPositions.push(position);
         dispatch(updatePositions(botId, newPositions));
-        dispatch(profileClearAddFields(botId));
     };
 }
 
@@ -55,13 +47,4 @@ export function removeProfilePositions(botId, indicies) {
         });
         dispatch(updatePositions(botId, newPositions));
     };
-}
-
-export function updateAddPosition(botId, field, value) {
-    return {
-        type: PROFILE_UPDATE_ADD_FIELD,
-        botId,
-        field,
-        value
-    }
 }
