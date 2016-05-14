@@ -18,12 +18,8 @@ function profileClearAddFields(botId) {
     }
 }
 
-export function addProfilePosition(botId, x, y, z) {
-    return (dispatch, getState) => {
-        const position = { x, y, z }
-        const newState = getState();
-        let newPositions = newState.bot.bots[botId].profile.positions.slice();
-        newPositions.push(position);
+function updatePositions(botId, newPositions) {
+    return (dispatch) => {
         botServer.request(botId, {
             type: 'set-profile',
             payload: {
@@ -33,7 +29,27 @@ export function addProfilePosition(botId, x, y, z) {
             dispatch(updateProfile(botId, newPositions));
             dispatch(profileClearAddFields(botId));
         });
-    }
+    };
+}
+
+export function addProfilePosition(botId, x, y, z) {
+    return (dispatch, getState) => {
+        const position = { x, y, z };
+        const newState = getState();
+        let newPositions = newState.bot.bots[botId].profile.positions.slice();
+        newPositions.push(position);
+        dispatch(updatePositions(botId, newPositions));
+    };
+}
+
+export function removeProfilePositions(botId, indicies) {
+    return (dispatch, getState) => {
+        const curPositions = getState().bot.bots[botId].profile.positions;
+        const newPositions = curPositions.filter((_, index) => {
+            return indicies.indexOf(index) == -1;
+        });
+        dispatch(updatePositions(botId, newPositions));
+    };
 }
 
 export function updateAddPosition(botId, field, value) {
