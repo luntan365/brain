@@ -18,6 +18,13 @@ function updatePositions(botId, positions) {
     }));
 }
 
+export function updateNpc(botId, npcKey, npcObj) {
+    return (dispatch, getState) => dispatch(setProfile(botId, {
+        ...getState().bot.bots[botId].profile,
+        [npcKey]: npcObj
+    }));
+}
+
 export function setProfile(botId, profile) {
     return (dispatch) => {
         botServer.request(botId, {

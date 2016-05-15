@@ -1,0 +1,21 @@
+
+.npcGroup {
+    display: flex;
+    flex-direction: column; 
+}
+
+.npcHeader {
+    text-align: center;
+    padding: 10px;
+    font-size: 20px;
+}
+
+.npcInputs {
+    display: flex;
+    flex-direction: column; 
+}
+
+.npcButtons {
+    display: flex;
+    flex-direction: row; 
+}

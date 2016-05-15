@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import styles from './ProfileConfig.css';
 import Input from './Input';
+import NpcConfig from './NpcConfig';
 import { openJsonFile, saveJsonFile } from '../utils/Dialog';
 
 class ProfileConfig extends Component {
@@ -46,6 +47,11 @@ class ProfileConfig extends Component {
                         <Input label="y" type="text" ref={(e) => this.addY = e}/>
                         <Input label="z" type="text" ref={(e) => this.addZ = e}/>
                     </div>
+                </div>
+                <div className={styles.npcSection}>
+                    <NpcConfig prefix="Repair"/>
+                    <NpcConfig prefix="Sell"/>
+                    <NpcConfig prefix="Restock"/>
                 </div>
                 <div className={styles.buttonGroup}>
                     <button

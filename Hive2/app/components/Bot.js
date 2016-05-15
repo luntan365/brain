@@ -61,7 +61,9 @@ class Bot extends Component {
                 {tabs}
             </div>
 
-            {this.props.children}
+            <div className={styles.paneContainer}>
+                {this.props.children}
+            </div>
 
             <div className={styles.btnGroup}>
               <div className="button" onClick={() => requestStart(id)}>
