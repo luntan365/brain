@@ -5,26 +5,21 @@ class Input extends Component {
     static propTypes = {
         label: PropTypes.string.isRequired,
         value: PropTypes.any,
+        checked: PropTypes.boolean,
         type: PropTypes.string.isRequired,
         onChange: PropTypes.func,
     };
 
     render() {
-        const { label, value, type, onChange } = this.props;
         let newProps = {
+            ...this.props,
             ref: (e) => this.domInput = e,
-            type: type,
         };
-        if (value !== undefined) {
-            newProps.value = value
-        }
-        if (onChange) {
-            newProps.onChange = onChange;
-        }
+        delete newProps.label
         return (
             <div className="inputField">
                 <div className="inputLabel">
-                    {label}
+                    {this.props.label}
                 </div>
                 <div className="input">
                     <input {...newProps} />

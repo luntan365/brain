@@ -10,21 +10,34 @@ class ProfileConfig extends Component {
         botId: PropTypes.string.isRequired,
         gameState: PropTypes.object.isRequired,
         positions: PropTypes.array.isRequired,
-        addX: PropTypes.number,
-        addY: PropTypes.number,
-        addZ: PropTypes.number,
+        npcs: PropTypes.object.isRequired,
         addProfilePosition: PropTypes.func.isRequired,
         removeProfilePositions: PropTypes.func.isRequired,
         setProfile: PropTypes.func.isRequired,
+        updateNpc: PropTypes.func.isRequired,
     };
 
     render() {
-        const { addX, addY, addZ, positions } = this.props;
+        const { npcs, positions } = this.props;
         const positionOptions = positions.map((p, i) => {
             return (
                 <option value={i}>
                     {p.x}, {p.y}, {p.z}
                 </option>
+            );
+        });
+        const npcProps = {
+            botId: this.props.botId,
+            gameState: this.props.gameState,
+            updateNpc: this.props.updateNpc,
+        }
+        const npcSections = Object.keys(npcs).map((npcKey) => {
+            return (
+                <NpcConfig 
+                    key={npcKey} 
+                    npcKey={npcKey} 
+                    {...npcProps} 
+                    {...npcs[npcKey]} />
             );
         });
         return (
@@ -49,9 +62,7 @@ class ProfileConfig extends Component {
                     </div>
                 </div>
                 <div className={styles.npcSection}>
-                    <NpcConfig prefix="Repair"/>
-                    <NpcConfig prefix="Sell"/>
-                    <NpcConfig prefix="Restock"/>
+                    {npcSections}
                 </div>
                 <div className={styles.buttonGroup}>
                     <button
@@ -126,7 +137,8 @@ class ProfileConfig extends Component {
 
     onSave(e) {
         saveJsonFile({
-            positions: this.props.positions
+            positions: this.props.positions,
+            npcs: this.props.npcs,
         });
     }
 }

@@ -156,6 +156,7 @@ function bots(state = {}, action) {
     if (action.botId === undefined || action.botId === null) {
         return state;
     } else if (action.type === BOT_CONNECTED) {
+        let defaultNpc = { enabled: true, npcId: 0, x: 0, y: 0, z: 0 }
         let defaultBotState = {
             id: action.botId,
             runState: "Idle",
@@ -170,7 +171,12 @@ function bots(state = {}, action) {
                 updateState: UPDATE_IDLE
             },
             profile: {
-                positions: []
+                positions: [],
+                npcs: {
+                    repair: {...defaultNpc},
+                    restock: {...defaultNpc},
+                    vendor: {...defaultNpc},
+                }
             }
         };
         return Object.assign({}, state, {

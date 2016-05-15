@@ -6,12 +6,18 @@ import styles from './NpcConfig.css'
 class NpcConfig extends Component {
 
     static propTypes = {
+        botId: PropTypes.string.isRequired,
         npcKey: PropTypes.string.isRequired,
-        gameState: PropTypes.objects.isRequired,
+        gameState: PropTypes.object.isRequired,
+        enabled: PropTypes.bool.isRequired,
+        npcId: PropTypes.number.isRequired,
+        x: PropTypes.number.isRequired,
+        y: PropTypes.number.isRequired,
+        z: PropTypes.number.isRequired,
     };
 
     render() {
-        const { npcKey } = this.props;
+        const { enabled, npcKey, npcId, x, y, z } = this.props;
         const prefix = npcKey.charAt(0).toUpperCase() + npcKey.slice(1);
         return (
             <div className={styles.npcGroup}>
@@ -19,34 +25,38 @@ class NpcConfig extends Component {
                     {prefix}
                 </div>
                 <div className={styles.npcFields}>
+                    <Input
+                        label="Enabled?"
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={e => this.updateEnabled(e)}
+                        />
                     <Input 
                         label={`${prefix} Id`} 
                         type="text" 
-                        ref={e => this.npcId = e} 
+                        value={npcId}
+                        onChange={e => this.updateField(e, 'npcId')}
                         />
                     <Input 
                         label={`${prefix} X`} 
                         type="text" 
-                        ref={e => this.x = e} 
+                        value={x}
+                        onChange={e => this.updateField(e, 'x')}
                         />
                     <Input 
                         label={`${prefix} Y`} 
                         type="text" 
-                        ref={e => this.y = e} 
+                        value={y}
+                        onChange={e => this.updateField(e, 'y')}
                         />
                     <Input 
                         label={`${prefix} Z`} 
                         type="text" 
-                        ref={e => this.z = e} 
+                        value={z}
+                        onChange={e => this.updateField(e, 'z')}
                         />
                 </div>
                 <div className={styles.npcButtons}>
-                    <button
-                        type="submit"
-                        className="flexButton"
-                        onClick={e => this.onSave(npcKey)}>
-                        SAVE
-                    </button>
                     <button
                         type="submit"
                         className="flexButton"
@@ -58,17 +68,36 @@ class NpcConfig extends Component {
         );
     }
 
-    getValue() {
-        return {
-            id: this.npcId.value,
-            x: this.npcId.x,
-            y: this.npcId.y,
-            z: this.npcId.z,
-        };
+    updateEnabled(e) {
+        const value = e.target.checked;
+        this.props.updateNpc(
+            this.props.botId,
+            this.props.npcKey,
+            {
+                enabled: value,
+                npcId: this.props.npcId,
+                x: this.props.x,
+                y: this.props.y,
+                z: this.props.z,
+            }
+        );
     }
 
-    onSave(key) {
-        this.props.updateNpc(this.props.botId, key, this.getValue())
+    updateField(e, field) {
+        const value = Number(e.target.value);
+        if (value) {
+            this.props.updateNpc(
+                this.props.botId, 
+                this.props.npcKey, 
+                {
+                    npcId: this.props.npcId,
+                    x: this.props.x,
+                    y: this.props.y,
+                    z: this.props.z,
+                    [field]: value,
+                }
+            );
+        }
     }
 
     onSetFromTarget(e) {
