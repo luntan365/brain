@@ -64,7 +64,10 @@ struct StaticFields
 	static constexpr void* STATIC_CORPSE_X = (void*)0xB4E284;
 	static constexpr void* STATIC_CORPSE_Y = (void*)0xB4E288;
 	static constexpr void* STATIC_CORPSE_Z = (void*)0xB4E28C;
-	static constexpr void* STATIC_AUTO_REPEATING_SPELL = (void*)0x00CEAC30;
+	static constexpr void* STATIC_AUTO_REPEATING_SPELL = (void*)0xCEAC30;
+	static constexpr void* STATIC_MERCHANT_ITEMS_COUNT = (void*)0xBDDFA8;
+	static constexpr uintptr_t STATIC_MERCHANT_ITEMS_START = 0xC4C4A0;
+
 };
 
 struct ObjectFields

@@ -13,7 +13,7 @@ NpcConfiguration::ToJson()
 {
     nlohmann::json json(mPosition.ToJson());
     json["enabled"] = mEnabled;
-    json["npcId"] = mGuid;
+    json["npcId"] = mId;
     return json;
 }
 
@@ -21,7 +21,7 @@ bool
 NpcConfiguration::FromJson(const nlohmann::json& json)
 {
     mEnabled = json["enabled"];
-    mGuid = json["npcId"];
+    mId = json["npcId"];
     mPosition.FromJson(json);
     return true;
 }
@@ -335,6 +335,19 @@ GrindBot::Tick(GameState& state)
     {
         irc.Log("Auto repeat: " + std::to_string(me.GetAutoRepeatingSpell()));
         return DoCombat(me, state);
+    }
+    else if (false && mProfile.mRestock.mEnabled)
+    {
+        // TODO do restock
+        MoveTo(me, mProfile.mRestock.mPosition);
+    }
+    else if (me.GetInventory().IsFull() && mProfile.mVendor.mEnabled)
+    {
+        MoveTo(me, mProfile.mVendor.mPosition);
+    }
+    else if (me.HasBrokenEquipment() && mProfile.mRepair.mEnabled)
+    {
+        MoveTo(me, mProfile.mRepair.mPosition);
     }
     else if (mBuff)
     {

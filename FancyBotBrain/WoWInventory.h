@@ -7,6 +7,9 @@
 class WoWInventory
 {
 public:
+    typedef std::function<bool (const WoWItem&, uint8_t, uint8_t)> ItemVisitor;
+
+public:
     void AddBag(uint64_t guid);
 
     void AddBag(const WoWContainer& container);
@@ -23,7 +26,9 @@ public:
 
     uint32_t GetItemCountByName(const std::string& name) const;
 
+    void ForEachItem(ItemVisitor f);
+
 private:
-    std::vector<WoWContainer> mBags;
+    std::array<WoWContainer, 4> mBags;
     std::array<WoWItem, 16> mBackpack;
 };

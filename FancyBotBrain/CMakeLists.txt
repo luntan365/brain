@@ -34,6 +34,7 @@ set(Brain_SRCS
     BotIrcClient.cpp
     Lua.cpp
     Mediator.cpp
+    MerchantPane.cpp
     PathTracker.cpp
     Position.cpp
     Spells.cpp

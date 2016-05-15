@@ -8,8 +8,9 @@
 GameState::GameState()
     : mIsInGame(false)
     , mFirstTick(true)
-    , mObjectManager()
     , mTickCount(0)
+    , mObjectManager()
+    , mMerchantPane()
 {
 }
 
@@ -55,6 +56,7 @@ void GameState::Update()
 void GameState::UpdateInGame()
 {
     Offsets::ObjectManager::Read(&mObjectManager);
+    mMerchantPane.Read();
 }
 
 

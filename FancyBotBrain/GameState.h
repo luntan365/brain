@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include "json.hpp"
+#include "MerchantPane.h"
 #include "WoWObjectManager.h"
 
 class GameState
@@ -30,6 +31,8 @@ private:
 	bool mIsInGame;
     bool mFirstTick;
     uint64_t mTickCount;
-    WoWObjectManager mObjectManager;
     std::mutex mMutex;
+
+    WoWObjectManager mObjectManager;
+    MerchantPane mMerchantPane;
 };

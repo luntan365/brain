@@ -15,7 +15,7 @@ struct NpcConfiguration
     virtual bool FromJson(const nlohmann::json& json);
 
     bool mEnabled;
-    uint64_t mGuid;
+    uint64_t mId;
     Position mPosition;
 };
 

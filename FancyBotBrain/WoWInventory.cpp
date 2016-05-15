@@ -67,48 +67,58 @@ bool WoWInventory::IsFull() const
 boost::optional<WoWItem>
 WoWInventory::GetItemByName(const std::string& name) const
 {
-    for (const auto& item : mBackpack)
-    {
+    boot::optional<WoWItem> output = boot::none;
+    ForEachItem([&name, &output] (const WoWItem& item, uint8_t, uint8_t) {
         if (item.GetName() == name)
         {
-            return boost::make_optional(item);
+            output = boost::make_optional(item);
+            return false
         }
-    }
-    for (const auto& bag : mBags)
-    {
-        for (const auto& k_v : bag.mSlots)
-        {
-            const auto& item = k_v.second;
-            if (item.GetName() == name)
-            {
-                return boost::make_optional(item);
-            }
-        }
-    }
-    return boost::none;
+        return true;
+    });
+    return output;
 }
 
 uint32_t
 WoWInventory::GetItemCountByName(const std::string& name) const
 {
     uint32_t count = 0;
-    for (const auto& item : mBackpack)
-    {
+    ForEachItem([&count, &name] (const WoWItem& item, uint8_t, uint8_t) {
         if (item.GetName() == name)
         {
             count += item.GetStackSize();
         }
-    }
-    for (const auto& bag : mBags)
+        return true;
+    });
+    return count;
+}
+
+void WoWInventory::ForEachItem(ItemVisitor f)
+{
+    for (auto slotIndex = 0; slotIndex < mBackpack.size(); slotIndex++)
     {
-        for (const auto& k_v : bag.mSlots)
+        const auto& item = mBackpack[slotIndex];
+        if (item.GetGUID() != 0)
         {
-            const auto& item = k_v.second;
-            if (item.GetName() == name)
+            bool keepGoing = f(item, 0, slotIndex);
+            if (!keepGoing)
             {
-                count += item.GetStackSize();
+                return;
             }
         }
     }
-    return count;
+    for (auto bagIndex = 0; bagIndex < mBags.size(); bagIndex++)
+    {
+        const auto& bag = mBags[bagIndex];
+        for (const auto& k_v : bag.mSlots)
+        {
+            const slotIndex = k_v.first;
+            const auto& item = k_v.second;
+            bool keepGoing = f(item, bagIndex, slotIndex);
+            if (!keepGoing)
+            {
+                return;
+            }
+        }
+    }
 }

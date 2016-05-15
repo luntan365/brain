@@ -322,3 +322,9 @@ int32_t WoWPlayer::GetAutoRepeatingSpell() const
 {
     return mAutoRepeatingSpell;
 }
+
+bool WoWPlayer::HasBrokenEquipment() const
+{
+    // TODO
+    return false;
+}

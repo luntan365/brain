@@ -71,6 +71,10 @@ public:
 
     int32_t GetAutoRepeatingSpell() const;
 
+    bool HasBrokenEquipment() const;
+
+    uint64_t GetVendorGuid() const;
+
 private:
     concurrency::task<void> CTM(
         uint64_t targetGuid,
