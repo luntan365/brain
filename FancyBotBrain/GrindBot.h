@@ -7,6 +7,18 @@
 
 class MoveMapManager;
 
+
+struct NpcConfiguration
+{
+    virtual nlohmann::json ToJson();
+
+    virtual bool FromJson(const nlohmann::json& json);
+
+    bool mEnabled;
+    uint64_t mGuid;
+    Position mPosition;
+};
+
 struct GrindBotProfile : public IBotConfig
 {
     virtual nlohmann::json ToJson();
@@ -14,6 +26,10 @@ struct GrindBotProfile : public IBotConfig
     virtual bool FromJson(const nlohmann::json& json);
 
     std::vector<Position> mGrindPositions;
+
+    NpcConfiguration mVendor;
+    NpcConfiguration mRestock;
+    NpcConfiguration mRepair;
 };
 
 struct GrindBotConfiguration : public IBotConfig

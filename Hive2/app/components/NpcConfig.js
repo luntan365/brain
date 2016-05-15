@@ -90,6 +90,7 @@ class NpcConfig extends Component {
                 this.props.botId, 
                 this.props.npcKey, 
                 {
+                    enabled: this.props.enabled,
                     npcId: this.props.npcId,
                     x: this.props.x,
                     y: this.props.y,

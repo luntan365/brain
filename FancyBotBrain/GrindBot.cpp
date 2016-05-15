@@ -7,6 +7,25 @@
 #include "classes/PaladinClass.h"
 #include "hadesmem/detail/trace.hpp"
 
+
+nlohmann::json
+NpcConfiguration::ToJson()
+{
+    nlohmann::json json(mPosition.ToJson());
+    json["enabled"] = mEnabled;
+    json["npcId"] = mGuid;
+    return json;
+}
+
+bool
+NpcConfiguration::FromJson(const nlohmann::json& json)
+{
+    mEnabled = json["enabled"];
+    mGuid = json["npcId"];
+    mPosition.FromJson(json);
+    return true;
+}
+
 nlohmann::json
 GrindBotProfile::ToJson()
 {
