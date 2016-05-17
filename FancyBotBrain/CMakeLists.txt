@@ -29,6 +29,7 @@ set(Brain_SRCS
     EndSceneManager.cpp
     FancyBotBrain.cpp
     GameState.cpp
+    GossipPane.cpp
     GrindBot.cpp
     HttpApi.cpp
     BotIrcClient.cpp

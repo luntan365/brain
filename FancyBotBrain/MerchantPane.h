@@ -4,6 +4,8 @@
 #include <ppltasks.h>
 #include <vector>
 
+class GameState;
+
 struct VendorItem
 {
     uint32_t mIndex;
@@ -18,7 +20,7 @@ struct VendorItem
 class MerchantPane
 {
 public:
-    MerchantPane();
+    MerchantPane(GameState* pGameState);
 
     void Read();
 
@@ -30,7 +32,10 @@ public:
 
     concurrency::task<void> BuyItem(uint32_t index, uint32_t quantity) const;
 
+    concurrency::task<void> RepairAll() const;
+
 private:
+    GameState* mpGameState;
     bool mOpen;
     bool mCanRepair;
     uint32_t mItemCount;

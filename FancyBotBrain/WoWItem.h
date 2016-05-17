@@ -8,16 +8,12 @@ struct ItemCacheEntry
     uint32_t id;
     int32_t pad_0;
 	uint32_t nameAddress;
-    uint8_t pad[460];
-
-	// [FieldOffset(28)]
-	// public int Quality;
-    //
-	// [FieldOffset(36)]
-	// public int BuyPrice;
-    //
-	// [FieldOffset(40)]
-	// public int SellPrice;
+    uint8_t pad_1[16];
+	uint32_t quality;
+    uint8_t pad_2[4];
+	uint32_t buyPrice;
+	uint32_t sellPrice;
+    uint8_t pad_3[424];
     //
 	// [FieldOffset(44)]
 	// public int InventoryType;
@@ -70,6 +66,12 @@ public:
     uint32_t GetId() const;
 
     uint32_t GetStackSize() const;
+
+    uint32_t GetSellPrice() const;
+
+    bool IsBroken() const;
+
+    bool IsRepaired() const;
 
 private:
     void* GetItemCacheAddress(uint32_t itemId);

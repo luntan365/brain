@@ -18,6 +18,7 @@ void WoWUnit::Read(WoWUnit* pUnit, void* pObject)
     ReadOffsetInto(AddOffset(address, OBJ_POS_Y), &pUnit->mPosition.y);
     ReadOffsetInto(AddOffset(address, OBJ_POS_Z), &pUnit->mPosition.z);
     ReadOffsetInto(AddOffset(address, OBJ_ROTATION), &pUnit->mRotation);
+    ReadOffsetInto(AddOffset(address, OBJ_ID), &pUnit->mId);
     auto pDescriptor = GetDataPointer(pObject);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_HEALTH), &pUnit->mHealth);
     ReadOffsetInto(AddOffset(pDescriptor, DATA_MAX_HEALTH), &pUnit->mMaxHealth);
@@ -134,4 +135,9 @@ bool WoWUnit::IsChanneling() const
 uint64_t WoWUnit::GetTargetGuid() const
 {
     return mTargetGUID;
+}
+
+uint32_t WoWUnit::GetId() const
+{
+    return mId;
 }

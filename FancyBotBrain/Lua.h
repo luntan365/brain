@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ppltasks.h>
 #include <vector>
 #include <string>
 
@@ -9,6 +10,14 @@ std::string GetLuaResult(
     const std::string& script,
     const std::string& argument
 );
+
+concurrency::task<void> AsyncExecuteLua(const std::string& script);
+
+concurrency::task<std::string> AsyncGetLuaResult(
+    const std::string& script, 
+    const std::string& argument
+);
+
 
 static const std::vector<std::string> LUA_FUNCTION_DEFS = {
     "function useItemInBag(totalSlots, bagnumber, item) for j = 1,totalSlots do "

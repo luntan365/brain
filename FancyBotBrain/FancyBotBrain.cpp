@@ -149,15 +149,19 @@ extern "C" HRESULT WINAPI EndSceneHook(
     if (lock.try_lock())
     {
     	auto& manager = EndSceneManager::Instance();
-
+        auto evaluateStartTime = std::chrono::steady_clock::now();
     	// TODO: Will probably want to give this a certain amount of time to execute
     	// in each frame rather than executing everything at once
     	while (!manager.Empty())
     	{
     		manager.EvaluateNextFunction();
+            if (std::chrono::steady_clock::now() - evaluateStartTime > 1000us)
+            {
+                break;
+            }
     	}
 
-        manager.Execute(UpdateGameState);
+        UpdateGameState();
     }
 
     frameIters++;

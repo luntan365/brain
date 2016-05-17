@@ -2,6 +2,7 @@
 
 #include <numeric>
 #include <concrt.h>
+#include <tuple>
 #include "BotIrcClient.h"
 #include "classes/MageClass.h"
 #include "classes/PaladinClass.h"
@@ -48,6 +49,9 @@ GrindBotProfile::FromJson(const nlohmann::json& json)
         p.FromJson(posObj);
         mGrindPositions.push_back(p);
     }
+    mVendor.FromJson(json["npcs"]["vendor"]);
+    mRestock.FromJson(json["npcs"]["restock"]);
+    mRepair.FromJson(json["npcs"]["repair"]);
     return true;
 }
 
@@ -84,7 +88,7 @@ GrindBotConfiguration::FromJson(const nlohmann::json& json)
 
 GrindBot::GrindBot(MoveMapManager* pMoveMapManager)
     : mConfig()
-    , mPathTracker(pMoveMapManager, WoWPlayer(), 3.0)
+    , mPathTracker(pMoveMapManager, WoWPlayer(), 5.0)
     , mCurrentMapId(0)
     , mBuff(true)
     , mRest(true)
@@ -172,7 +176,7 @@ GetInLosUnits(
     return concurrency::when_all(tasks.begin(), tasks.end())
         .then([units](const std::vector<bool>& inLos) {
             std::vector<WoWUnit> unitsOut;
-            for (auto i = 0; i < inLos.size(); i++)
+            for (uint32_t i = 0; i < inLos.size(); i++)
             {
                 if (inLos[i])
                 {
@@ -210,9 +214,9 @@ const WoWUnit GetClosestUnit(
     );
 }
 
-void GrindBot::MoveTo(const WoWPlayer& me, const Position& position)
+bool GrindBot::MoveTo(const WoWPlayer& me, const Position& position)
 {
-    mPathTracker.SetDestination(position);
+    return mPathTracker.SetDestination(position);
 }
 
 concurrency::task<void>
@@ -287,6 +291,60 @@ Position GrindBot::GetGrindPosition()
 }
 
 concurrency::task<void>
+GrindBot::WalkToAndInteractWithNpcId(
+    const WoWPlayer& me,
+    const std::vector<WoWUnit>& nearbyUnits,
+    const Position& position, 
+    uint32_t npcId)
+{
+    // Are we in the user-provided position yet?
+    if (me.GetPosition().Distance2d(position) > 30.0) 
+    {
+        MoveTo(me, position);
+    }
+    const auto& units = FilterUnits(
+        nearbyUnits,
+        [&me, npcId](const WoWUnit& unit) {
+            if (unit.GetId() == npcId)
+            {
+                return true;
+            }
+            return false;
+        }
+    );
+    if (units.size() > 0)
+    {
+        const auto& unit = GetClosestUnit(me, units);
+        if (me.GetPosition().Distance2d(unit.GetPosition()) < 5.0)
+        {
+            return me.InteractWith(unit);
+        }
+        else
+        {
+            MoveTo(me, unit.GetPosition());
+        }
+    } 
+    return mPathTracker.Tick();
+} 
+
+boost::optional<std::tuple<uint8_t, uint8_t>>
+GetNextSellItem(const WoWPlayer& me)
+{
+    boost::optional<std::tuple<uint8_t, uint8_t>> sellItem = boost::none;
+    me.GetInventory().ForEachItem(
+        [&sellItem] (const WoWItem& item, uint8_t bag, uint8_t slot) {
+            if (item.GetSellPrice() == 0)
+            {
+                return true;
+            }
+            sellItem = boost::make_optional(std::make_tuple(bag, slot));
+            return false;
+        }
+    );
+    return sellItem;
+}
+
+concurrency::task<void>
 GrindBot::Tick(GameState& state)
 {
     if (!state.GetIsInGame())
@@ -336,18 +394,75 @@ GrindBot::Tick(GameState& state)
         irc.Log("Auto repeat: " + std::to_string(me.GetAutoRepeatingSpell()));
         return DoCombat(me, state);
     }
-    else if (false && mProfile.mRestock.mEnabled)
+    else if (state.GetMerchantPane().IsOpen() 
+        && mGrindState == GrindBotState::VENDORING)
     {
-        // TODO do restock
-        MoveTo(me, mProfile.mRestock.mPosition);
+        auto maybeItem = GetNextSellItem(me);
+        if (maybeItem)
+        {
+            return me.UseContainerItem(
+                std::get<0>(*maybeItem),
+                std::get<1>(*maybeItem)
+            );
+        }
+        else
+        {
+            mGrindState = GrindBotState::REPAIRING;
+            return concurrency::task_from_result();
+        }
     }
-    else if (me.GetInventory().IsFull() && mProfile.mVendor.mEnabled)
+    else if (state.GetMerchantPane().IsOpen() 
+        && mGrindState == GrindBotState::REPAIRING)
     {
-        MoveTo(me, mProfile.mVendor.mPosition);
+        if (!me.IsFullyRepaired())
+        {
+            return state.GetMerchantPane().RepairAll();
+        }        
+        else
+        {
+            mGrindState = GrindBotState::GRINDING;
+            return concurrency::task_from_result();
+        }
     }
-    else if (me.HasBrokenEquipment() && mProfile.mRepair.mEnabled)
+    else if (state.GetGossipPane().IsOpen())
     {
-        MoveTo(me, mProfile.mRepair.mPosition);
+        return state.GetGossipPane().SelectFirstOptionWithType(
+            GossipType::VENDOR
+        );
+    }
+    else if (mGrindState == GrindBotState::RESTOCKING)
+    {
+        return WalkToAndInteractWithNpcId(
+            me,
+            units,
+            mProfile.mRestock.mPosition,
+            mProfile.mRestock.mId
+        );
+    }
+    else if (mGrindState == GrindBotState::REPAIRING)
+    {
+        return WalkToAndInteractWithNpcId(
+            me,
+            units,
+            mProfile.mRepair.mPosition,
+            mProfile.mRepair.mId
+        );
+    }
+    else if (mGrindState == GrindBotState::VENDORING)
+    {
+        return WalkToAndInteractWithNpcId(
+            me,
+            units,
+            mProfile.mVendor.mPosition,
+            mProfile.mVendor.mId
+        );
+    }
+    else if (
+        (me.GetInventory().IsFull() && mProfile.mVendor.mEnabled) ||
+        (me.HasBrokenEquipment() && mProfile.mRepair.mEnabled) ||
+        (false && mProfile.mRestock.mEnabled))
+    {
+        mGrindState = GrindBotState::VENDORING;
     }
     else if (mBuff)
     {
@@ -368,7 +483,7 @@ GrindBot::Tick(GameState& state)
                 return me.AutoLoot();
             });
         }
-        else if (me.InRangeOf(closestUnit, 3.0f))
+        else if (me.InRangeOf(closestUnit, 5.0f))
         {
             irc.Log("Open Loot Window");
             return t.then([this, &me, closestUnit] {
@@ -395,11 +510,18 @@ GrindBot::Tick(GameState& state)
                 return grindZone.ContainsPoint(unit.GetPosition());
             }
         );
-        const auto& losUnitsTask = GetInLosUnits(me, inZoneUnits);
-        const auto closestUnit = GetClosestUnit(me, inZoneUnits);
+        auto& losUnitsTask = GetInLosUnits(me, inZoneUnits);
         return losUnitsTask
-            .then([this, &me, &irc, &state, currentPosition, closestUnit]
-                    (const std::vector<WoWUnit>& losUnits) {
+            .then([this, &me, &irc, &state, currentPosition]
+                    (std::vector<WoWUnit>& losUnits) {
+                std::sort(
+                    losUnits.begin(), 
+                    losUnits.end(),
+                    [&me](const WoWUnit& a, const WoWUnit& b) {
+                        return me.GetPosition().Distance(a.GetPosition()) 
+                            < me.GetPosition().Distance(b.GetPosition());
+                    }
+                );
                 if (losUnits.empty())
                 {
                     MoveTo(me, GetGrindPosition());
@@ -421,10 +543,16 @@ GrindBot::Tick(GameState& state)
                 }
                 else
                 {
-                    irc.Log("Walking towards mob");
-                    MoveTo(me, closestUnit.GetPosition());
-                    return mPathTracker.Tick();
+                    for (const auto& unit : losUnits)
+                    {
+                        irc.Log("Walking towards mob");
+                        if (MoveTo(me, unit.GetPosition()))
+                        {
+                            break;
+                        }
+                    }
                 }
+                return mPathTracker.Tick();
             });
     }
 

@@ -37,6 +37,12 @@
 void* AddOffset(void* p, int offset);
 
 template <typename T>
+void ReadOffsetInto(uintptr_t addr, T* out)
+{
+	*out = hadesmem::Read<T>(GetThisProcess(), (void*)addr);
+}
+
+template <typename T>
 void ReadOffsetInto(void* addr, T* out)
 {
 	*out = hadesmem::Read<T>(GetThisProcess(), addr);
@@ -46,6 +52,30 @@ template <typename T>
 void ReadOffsetInto(void* base, uintptr_t offset, T* out)
 {
 	ReadOffsetInto(AddOffset(base, offset), out);
+}
+
+template <typename T>
+T ReadOffset(uintptr_t base)
+{
+	T t;
+	ReadOffsetInto(base, &t);
+	return t;
+}
+
+template <typename T>
+T ReadOffset(void* base)
+{
+	T t;
+	ReadOffsetInto(base, &t);
+	return t;
+}
+
+template <typename T>
+T ReadOffset(void* base, uintptr_t offset)
+{
+	T t;
+	ReadOffsetInto(base, offset, &t);
+	return t;
 }
 
 class Offsets
@@ -65,8 +95,15 @@ struct StaticFields
 	static constexpr void* STATIC_CORPSE_Y = (void*)0xB4E288;
 	static constexpr void* STATIC_CORPSE_Z = (void*)0xB4E28C;
 	static constexpr void* STATIC_AUTO_REPEATING_SPELL = (void*)0xCEAC30;
+	static constexpr void* STATIC_MERCHANT_GUID = (void*)0xBDDFA0;
 	static constexpr void* STATIC_MERCHANT_ITEMS_COUNT = (void*)0xBDDFA8;
 	static constexpr uintptr_t STATIC_MERCHANT_ITEMS_START = 0xC4C4A0;
+	static constexpr void* STATIC_GOSSIP_GUID = (void*)0xBC3F58;
+    static constexpr uintptr_t STATIC_OPTIONS_OFFSET = 0xBBBE90;
+    static constexpr uintptr_t STATIC_OPTIONS_END = 0xBC3F50;
+    static constexpr uintptr_t STATIC_OPTIONS_END_OFFSET = 2048;
+    static constexpr uintptr_t STATIC_OPTIONS_ITER = 2060;
+    static constexpr uintptr_t STATIC_GOSSIP_TYPE = 2056;
 
 };
 

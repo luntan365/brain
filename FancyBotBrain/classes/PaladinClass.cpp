@@ -3,8 +3,8 @@
 
 PaladinConfig::PaladinConfig(const GrindBotConfiguration& config)
     : GrindBotConfiguration(config)
-    , mUseCrusader(false)
-    , mUseBlessing(false)
+    , mUseCrusader(true)
+    , mUseBlessing(true)
     , mBlessing("Blessing of Might")
 {
 }
@@ -28,26 +28,12 @@ PaladinClass::SealJudgementRotation(const WoWPlayer& me, GameState& state)
     const auto targetGuid = me.GetTargetGuid();
     if (!HaveSeal(me))
     {
-        auto maybeTarget = state.ObjectManager().GetObjectByGuid(targetGuid);
-        if (mConfig.mUseCrusader)
+        auto maybeTarget = state.ObjectManager().GetTarget();
+        if (mConfig.mUseCrusader 
+            && maybeTarget 
+            && !maybeTarget->HasDebuff("Judgement of the Crusader"))
         {
-            if (maybeTarget && maybeTarget->ToUnit() != nullptr)
-            {
-                const auto pTarget = maybeTarget->ToUnit();
-                if (pTarget->HasDebuff("Seal of the Crusader"))
-                {
-                    return me.CastSpellByName("Seal of the Crusader");
-                }
-                else
-                {
-                    return concurrency::task_from_result();
-                }
-            }
-            else
-            {
-                BotIrcClient::Instance().Log("No target to attack");
-                return concurrency::task_from_result();
-            }
+            return me.CastSpellByName("Seal of the Crusader");
         }
         else
         {
@@ -68,9 +54,20 @@ PaladinClass::DoPull(const WoWPlayer& me, GameState& state)
     });
 }
 
+
+
 concurrency::task<void>
 PaladinClass::DoCombat(const WoWPlayer& me, GameState& state)
 {
+    if (me.HealthPercent() < 40)
+    {
+        std::vector<concurrency::task<void>> tasks{
+            me.SetTarget(me),
+            me.CastSpellByName("Hammer of Justice"),
+            me.CastSpellByName("Holy Light")
+        };
+        return concurrency::when_all(tasks.begin(), tasks.end()).then([]{});
+    }
     const auto& enemyUnits = state.ObjectManager().GetEnemyUnits();
     const auto& attackableUnits = GetAttackableUnits(me, enemyUnits);
     const auto& attackers = GetAttackers(me, attackableUnits);

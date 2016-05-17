@@ -2,8 +2,10 @@
 
 #include <mutex>
 #include "json.hpp"
+#include "GossipPane.h"
 #include "MerchantPane.h"
 #include "WoWObjectManager.h"
+#include <chrono>
 
 class GameState
 {
@@ -20,6 +22,10 @@ public:
 
     WoWObjectManager& ObjectManager();
 
+    const MerchantPane& GetMerchantPane() const;
+
+    const GossipPane& GetGossipPane() const;
+
     nlohmann::json ToJson() const;
 
 private:
@@ -34,5 +40,8 @@ private:
     std::mutex mMutex;
 
     WoWObjectManager mObjectManager;
+    GossipPane mGossipPane;
     MerchantPane mMerchantPane;
+
+    std::chrono::time_point<std::chrono::steady_clock> mLastTick;
 };

@@ -1,9 +1,12 @@
 #include "MerchantPane.h"
 
+#include "GameState.h"
+#include "Lua.h"
 #include "WowOffsets.h"
 
 
-MerchantPane::MerchantPane()
+MerchantPane::MerchantPane(GameState* pGameState)
+    : mpGameState(pGameState)
 {
 }
 
@@ -11,19 +14,23 @@ MerchantPane::MerchantPane()
 void MerchantPane::Read()
 {
     mItems.clear();
-    ReadOffsetInto(STATIC_MERCHANT_OPEN, &mOpen);
+    mOpen = mpGameState->ObjectManager().GetPlayer().GetVendorGuid() != 0;
     if (!mOpen)
     {
         return;
     }
-    ReadOffsetInto(STATIC_MERCHANT_ITEMS_COUNT, &mItemCount);
+    ReadOffsetInto(StaticFields::STATIC_MERCHANT_ITEMS_COUNT, &mItemCount);
     for (uint32_t i = 0; i < mItemCount; i++)
     {
-        auto address = STATIC_MERCHANT_ITEMS_START + sizeof(VendorItem) * i;
+        auto address = 
+            StaticFields::STATIC_MERCHANT_ITEMS_START + sizeof(VendorItem) * i;
         VendorItem item;
-        ReadOffsetItem((void*)address, &item);
+        ReadOffsetInto((void*)address, &item);
         mItems.emplace_back(item);
     }
+    auto canRepairStr = 
+        GetLuaResult("_canRepair = CanMerchantRepair()", "_canRepair");
+    mCanRepair = canRepairStr == "1";
 }
 
 bool MerchantPane::IsOpen() const
@@ -33,8 +40,7 @@ bool MerchantPane::IsOpen() const
 
 bool MerchantPane::CanRepair() const
 {
-    // TODO LUA
-    return false; 
+    return mCanRepair; 
 }
 
 std::vector<VendorItem> MerchantPane::ListItems() const
@@ -43,7 +49,13 @@ std::vector<VendorItem> MerchantPane::ListItems() const
 }
 
 concurrency::task<void> 
-MerchantPane::BuyItem(uint32_t index, uint32_t quantity)
+MerchantPane::BuyItem(uint32_t index, uint32_t quantity) const
 {
     return concurrency::task_from_result();
+}
+
+concurrency::task<void>
+MerchantPane::RepairAll() const
+{
+    return AsyncExecuteLua("RepairAllItems()");
 }

@@ -30,7 +30,7 @@ PathTracker::Tick()
             GetPointOnPath(
                 mPlayer.GetPosition(),
                 mPath.front(),
-                10 
+                7 
             )
         );
     }
@@ -50,15 +50,10 @@ PathTracker::SetPlayer(const WoWPlayer& player)
     mPlayer = player;
 }
 
-void
+bool
 PathTracker::SetDestination(const Position& position)
 {
-    // if (position == mDestination)
-    // {
-    //     return;
-    // }
-    mDestination = position;
-    RegeneratePath();
+    return RegeneratePath(position);
 }
 
 bool
@@ -73,12 +68,21 @@ PathTracker::IsMoving() const
     return !mPath.empty();
 }
 
-void
-PathTracker::RegeneratePath()
+bool
+PathTracker::RegeneratePath(const Position& position)
 {
-    mPathFinder.Calculate(mPlayer.GetPosition(), mDestination);
-    mPath = std::deque<Vector3>(
-        mPathFinder.GetPath().begin(),
-        mPathFinder.GetPath().end()
-    );
+    mPathFinder.Calculate(mPlayer.GetPosition(), position);
+    if (mPathFinder.GetType() == PATHFIND_NORMAL || mPathFinder.GetType() == PATHFIND_INCOMPLETE)
+    {
+        mPath = std::deque<Vector3>(
+            mPathFinder.GetPath().begin(),
+            mPathFinder.GetPath().end()
+        );
+        mDestination = position;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

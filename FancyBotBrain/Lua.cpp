@@ -17,6 +17,22 @@ GetLuaResult(const std::string& script, const std::string& argument)
     return std::string(result);
 }
 
+concurrency::task<void>
+AsyncExecuteLua(const std::string& script)
+{
+    return EndSceneManager::Instance().Execute([script] {
+        ExecuteLua(script);
+    });
+}
+
+concurrency::task<std::string>
+AsyncGetLuaResult(const std::string& script, const std::string& argument)
+{
+    return EndSceneManager::Instance().Execute([script, argument] {
+        return GetLuaResult(script, argument);
+    });
+}
+
 void RegisterLuaFunctions()
 {
     for (const auto& f : LUA_FUNCTION_DEFS)

@@ -15,7 +15,7 @@ struct NpcConfiguration
     virtual bool FromJson(const nlohmann::json& json);
 
     bool mEnabled;
-    uint64_t mId;
+    uint32_t mId;
     Position mPosition;
 };
 
@@ -48,6 +48,13 @@ struct GrindBotConfiguration : public IBotConfig
     float mGrindMaxDistance;
 };
 
+enum class GrindBotState
+{
+    GRINDING,
+    REPAIRING,
+    RESTOCKING, 
+    VENDORING,
+};
 
 class GrindBot : public IBot
 {
@@ -64,7 +71,7 @@ public:
 
     virtual concurrency::task<void> Tick(GameState& state);
 
-    void MoveTo(const WoWPlayer& me, const Position& p);
+    bool MoveTo(const WoWPlayer& me, const Position& p);
 
     concurrency::task<void> StopMoving();
 
@@ -83,6 +90,14 @@ private:
 
     Position GetGrindPosition();
 
+    concurrency::task<void> 
+    WalkToAndInteractWithNpcId(
+        const WoWPlayer& me, 
+        const std::vector<WoWUnit>& units,
+        const Position& position,
+        uint32_t npcId
+    );
+
 private:
     GrindBotConfiguration mConfig;
     GrindBotProfile mProfile;
@@ -95,6 +110,7 @@ private:
     bool mFirstTick;
 
     uint32_t mGrindPositionIndex;
+    GrindBotState mGrindState;
 };
 
 // TODO: move these somewhere more appropriate

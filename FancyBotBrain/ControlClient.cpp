@@ -98,7 +98,7 @@ ControlClient::DoReadHeader()
         {
             if (!ec)
             {
-                DoReadBody();
+                DoReadBody(mReadMessage.mBuffer, mReadMessage.mLength);
             }
             else
             {
@@ -109,22 +109,28 @@ ControlClient::DoReadHeader()
 }
 
 void
-ControlClient::DoReadBody()
+ControlClient::DoReadBody(char* start, uint32_t length)
 {
     boost::asio::async_read(
         *mpSocket,
-        boost::asio::buffer(mReadMessage.mBuffer, mReadMessage.mLength),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
+        boost::asio::buffer(start, length),
+        [this, start, length]
+        (boost::system::error_code ec, std::size_t lengthRead)
         {
-            if (!ec)
+            if (ec)
+            {
+                Reconnect();
+            }
+            else if (lengthRead == length)
             {
                 std::string body(mReadMessage.mBuffer, mReadMessage.mLength);
-                OnMessage(Json::parse(body));
+				auto json = Json::parse(body);
+				OnMessage(json);
                 DoReadHeader();
             }
             else
             {
-                Reconnect();
+                DoReadBody(start + lengthRead, length - lengthRead);
             }
         }
     );

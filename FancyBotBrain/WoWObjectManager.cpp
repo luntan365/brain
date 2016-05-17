@@ -24,6 +24,7 @@ WoWObjectManager::Read(WoWObjectManager* pManager, void* basePtr)
     pManager->ClearObjects();
     auto fn = (ObjectManagerEnumVisibleObjects)EnumVisableObjectsAddress;
     fn(&ObjectIter, (void*)pManager);
+    pManager->UpdateTarget();
 }
 
 void
@@ -92,7 +93,25 @@ WoWObjectManager::NewPlayer(const WoWObject& object)
     {
         auto player = WoWPlayer::Read(object.GetAddress());
         mUnits.emplace_back(player);
+        mUnitMap.emplace(player.GetGUID(), player);
     }
+}
+
+void
+WoWObjectManager::UpdateTarget()
+{
+    auto targetGuid = mPlayer.GetTargetGuid();
+    if (targetGuid == 0)
+    {
+        mTarget == boost::none;
+        return;
+    }
+    if (mUnitMap.find(targetGuid) == mUnitMap.end())
+    {
+        mTarget == boost::none;
+        return;
+    }
+    mTarget = boost::make_optional(mUnitMap.at(targetGuid));
 }
 
 void
@@ -104,6 +123,7 @@ WoWObjectManager::NewUnit(const WoWObject& object)
         mEnemyUnits.push_back(unit);
     }
     mUnits.emplace_back(unit);
+    mUnitMap.emplace(unit.GetGUID(), unit);
 }
 
 void
@@ -111,6 +131,7 @@ WoWObjectManager::ClearObjects()
 {
     mObjects.clear();
     mUnits.clear();
+    mUnitMap.clear();
     mEnemyUnits.clear();
     mPlayer.Reset();
 }
@@ -166,10 +187,25 @@ WoWObjectManager::GetEnemyUnits() const
     return mEnemyUnits;
 }
 
+const boost::optional<WoWUnit>&
+WoWObjectManager::GetTarget() const
+{
+    return mTarget;
+}
+
 nlohmann::json
 WoWObjectManager::ToJson() const
 {
     nlohmann::json j;
     j["player_position"] = mPlayer.GetPosition().ToJson();
+    auto maybeTarget = GetTarget();
+    if (maybeTarget)
+    {
+        nlohmann::json targetJson = {
+            {"position", maybeTarget->GetPosition().ToJson()},
+            {"id", maybeTarget->GetId()},
+        };
+        j["target"] = targetJson;
+    }
     return j;
 }

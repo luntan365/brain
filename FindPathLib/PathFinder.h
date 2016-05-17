@@ -56,6 +56,8 @@ public:
 
     const std::vector<Vector3>& GetPath() const;
 
+    PathType GetType() const;
+
 private:
     void Clear();
 

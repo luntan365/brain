@@ -15,7 +15,7 @@ public:
 
     void SetPlayer(const WoWPlayer& pPlayer);
 
-    void SetDestination(const Position& position);
+    bool SetDestination(const Position& position);
 
     concurrency::task<void> StopMoving();
 
@@ -24,7 +24,7 @@ public:
     bool IsMoving() const;
 
 private:
-    void RegeneratePath();
+    bool RegeneratePath(const Position& position);
 
 private:
     PathFinder mPathFinder;

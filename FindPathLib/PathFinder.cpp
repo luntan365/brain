@@ -291,16 +291,17 @@ void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
 
 dtPolyRef PathFinder::GetPolyByLocation(const float* point, float* distance) const
 {
-    dtPolyRef polyRef = GetPathPolyByPosition(
-        mPathPolyRefs,
-        mPolyLength,
-        point,
-        distance
-    );
-    if (polyRef != INVALID_POLYREF)
-    {
-        return polyRef;
-    }
+    dtPolyRef polyRef = INVALID_POLYREF;
+    // dtPolyRef polyRef = GetPathPolyByPosition(
+    //     mPathPolyRefs,
+    //     mPolyLength,
+    //     point,
+    //     distance
+    // );
+    // if (polyRef != INVALID_POLYREF)
+    // {
+    //     return polyRef;
+    // }
 
     float extents[VERTEX_SIZE] = {3.0f, 5.0f, 3.0f};    // bounds of poly search area
     float closestPoint[VERTEX_SIZE] = {0.0f, 0.0f, 0.0f};
@@ -435,4 +436,9 @@ void PathFinder::SetActualEndPosition(const Vector3& point)
 const std::vector<Vector3>& PathFinder::GetPath() const
 {
     return mPathPoints;
+}
+
+PathType PathFinder::GetType() const
+{
+    return mType;
 }

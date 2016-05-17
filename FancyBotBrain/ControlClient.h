@@ -11,7 +11,7 @@
 struct ControlMessage
 {
     static const uint64_t HEADER_LENGTH = 8;
-    static const uint64_t MAX_BODY_LENGTH = 1024;
+    static const uint64_t MAX_BODY_LENGTH = 64 * 1024;
     char mHeader[4];
     uint32_t mLength;
     char mBuffer[MAX_BODY_LENGTH];
@@ -45,7 +45,7 @@ private:
 
     void DoReadHeader();
 
-    void DoReadBody();
+    void DoReadBody(char* start, uint32_t length);
 
     void DoWrite();
 

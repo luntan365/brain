@@ -102,7 +102,20 @@ class NpcConfig extends Component {
     }
 
     onSetFromTarget(e) {
-
+        let target = this.props.gameState.target;
+        if (target) {
+            this.props.updateNpc(
+                this.props.botId,
+                this.props.npcKey,
+                {
+                    enabled: this.props.enabled,
+                    npcId: target.id,
+                    x: target.position.x,
+                    y: target.position.y,
+                    z: target.position.z,
+                }
+            );
+        }
     }
 
 }

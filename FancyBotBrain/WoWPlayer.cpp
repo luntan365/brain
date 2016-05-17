@@ -6,6 +6,7 @@
 
 #include <hadesmem/write.hpp>
 #include <chrono>
+#include <sstream>
 
 using namespace std::chrono;
 
@@ -34,6 +35,10 @@ void WoWPlayer::Read(WoWPlayer* pPlayer, void* pObject)
         StaticFields::STATIC_AUTO_REPEATING_SPELL,
         &pPlayer->mAutoRepeatingSpell
     );
+    ReadOffsetInto(
+        StaticFields::STATIC_MERCHANT_GUID,
+        &pPlayer->mVendorGuid
+    );
 
     for (uint8_t backpackIdx = 0; backpackIdx < 16; backpackIdx++)
     {
@@ -52,11 +57,10 @@ void WoWPlayer::Read(WoWPlayer* pPlayer, void* pObject)
         auto offset = PlayerFields::PLAYER_FIELD_INV_SLOT_HEAD
             + (EQUIP_LOC_BAG_1 + bagIdx) * 8;
         ReadOffsetInto(pDescriptor, offset, &bagGuid);
-        pPlayer->mInventory.AddBag(bagGuid);
+        pPlayer->mInventory.AddBag(bagIdx, bagGuid);
     }
 
     pPlayer->mIsLooting = GetIsLooting(pObject);
-    pPlayer->mIsVendorOpen = GetLuaResult("r = IsVendorOpen()", "r") == "true";
 }
 
 void WoWPlayer::Reset()
@@ -71,9 +75,10 @@ WoWPlayer::CTM(uint64_t targetGuid, const Vector3& destination, uint32_t flag) c
 {
     typedef bool (__thiscall *ClickToMoveFn)
         (void*, const uint32_t, const uint64_t*, const void*, float);
-    auto address = GetAddress();
+    auto addressTest = GetAddress();
     return EndSceneManager::Instance()
-        .Execute([address, flag, destination, targetGuid] {
+        .Execute([this, addressTest, flag, destination, targetGuid] {
+            auto address = GetAddress();
             auto fn = ((ClickToMoveFn)0x611130);
             auto pDest = (void*)&destination.x;
             fn(address, flag, &targetGuid, pDest, 5.0);
@@ -108,22 +113,6 @@ WoWPlayer::Loot(const WoWUnit& unit) const
             auto fn = ((OnRightClickFn)0x60BEA0);
             fn(addr, 1);
         });
-}
-
-concurrency::task<void>
-AsyncExecuteLua(const std::string& script)
-{
-    return EndSceneManager::Instance().Execute([script] {
-        ExecuteLua(script);
-    });
-}
-
-concurrency::task<std::string>
-AsyncGetLuaResult(const std::string& script, const std::string& argument)
-{
-    return EndSceneManager::Instance().Execute([script, argument] {
-        return GetLuaResult(script, argument);
-    });
 }
 
 concurrency::task<void>
@@ -234,6 +223,14 @@ WoWPlayer::UseItemByName(const std::string& itemName) const
     return concurrency::task_from_result();
 }
 
+concurrency::task<void>
+WoWPlayer::UseContainerItem(uint32_t bagId, uint32_t slotId) const
+{
+    std::stringstream ss;
+    ss << "UseContainerItem(" << bagId << "," << (slotId + 1) << ")";
+    return AsyncExecuteLua(ss.str());
+}
+
 bool
 WoWPlayer::IsUnitHostile(const WoWUnit& unit) const
 {
@@ -325,6 +322,33 @@ int32_t WoWPlayer::GetAutoRepeatingSpell() const
 
 bool WoWPlayer::HasBrokenEquipment() const
 {
-    // TODO
-    return false;
+    bool ret = false;
+    GetInventory().ForEachItem([&ret] (const WoWItem& item, uint8_t, uint8_t) {
+        if (item.IsBroken())
+        {
+            ret = true;
+            return false;
+        }
+        return true;
+    });
+    return ret;
+}
+
+bool WoWPlayer::IsFullyRepaired() const
+{
+    bool ret = true;
+    GetInventory().ForEachItem([&ret] (const WoWItem& item, uint8_t, uint8_t) {
+        if (!item.IsRepaired())
+        {
+            ret = false;
+            return false;
+        }
+        return true;
+    });
+    return ret;
+}
+
+uint64_t WoWPlayer::GetVendorGuid() const
+{
+    return mVendorGuid;
 }

@@ -4,13 +4,14 @@
 #include "Lua.h"
 #include "WowOffsets.h"
 
+using namespace std::chrono_literals;
 
 GameState::GameState()
     : mIsInGame(false)
     , mFirstTick(true)
     , mTickCount(0)
     , mObjectManager()
-    , mMerchantPane()
+    , mMerchantPane(this)
 {
 }
 
@@ -41,9 +42,10 @@ void GameState::Update()
             mFirstTick = false;
         }
         mObjectManager.UpdatePlayer();
-        if (mTickCount % 100)
+        if (std::chrono::steady_clock::now() - mLastTick > 100ms)
         {
     		UpdateInGame();
+            mLastTick = std::chrono::steady_clock::now();
         }
 	}
 	else
@@ -56,6 +58,7 @@ void GameState::Update()
 void GameState::UpdateInGame()
 {
     Offsets::ObjectManager::Read(&mObjectManager);
+    mGossipPane.Read();
     mMerchantPane.Read();
 }
 
@@ -69,6 +72,18 @@ bool GameState::GetIsInGame() const
 WoWObjectManager& GameState::ObjectManager()
 {
     return mObjectManager;
+}
+
+
+const MerchantPane& GameState::GetMerchantPane() const
+{
+    return mMerchantPane;
+}
+
+
+const GossipPane& GameState::GetGossipPane() const
+{
+    return mGossipPane;
 }
 
 

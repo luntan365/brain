@@ -78,3 +78,18 @@ uint32_t WoWItem::GetStackSize() const
 {
     return mStackCount;
 }
+
+bool WoWItem::IsBroken() const
+{
+    return mMaxDurability > 0 && mDurability == 0;
+}
+
+bool WoWItem::IsRepaired() const
+{
+    return mDurability >= mMaxDurability;
+}
+
+uint32_t WoWItem::GetSellPrice() const
+{
+    return mItemCache.sellPrice;
+}

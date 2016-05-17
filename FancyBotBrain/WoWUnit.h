@@ -46,6 +46,7 @@ enum UnitFlags
 class WoWUnit : public WoWObject
 {
 public:
+    static const uintptr_t OBJ_ID = 0xE74;
     static const uintptr_t DATA_HEALTH = 0x58;
     static const uintptr_t DATA_MAX_HEALTH = 0x70;
     static const uintptr_t DATA_FACTION_ID = 0x8C;
@@ -59,6 +60,8 @@ public:
     static WoWUnit Read(void* pObject);
 
     static void Read(WoWUnit* pUnit, void* address);
+
+    uint32_t GetId() const;
 
     bool IsAlive() const;
 
@@ -99,6 +102,7 @@ protected:
     uint32_t mFlags;
     uint32_t mCastingSpell;
     uint32_t mChannelingSpell;
+    uint32_t mId;
 
     std::vector<uint32_t> mBuffs;
     std::vector<uint32_t> mDebuffs;

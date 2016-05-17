@@ -2,19 +2,22 @@
 
 #include <numeric>
 
-void WoWInventory::AddBag(const WoWContainer& container)
+void WoWInventory::AddBag(uint32_t bagIndex, const WoWContainer& container)
 {
-    mBags.emplace_back(container);
+    mBags[bagIndex] = container;
 }
 
-void WoWInventory::AddBag(uint64_t guid)
+void WoWInventory::AddBag(uint32_t bagIdx, uint64_t guid)
 {
     auto maybeObj = WoWObject::GetByGUID(guid);
-    if (!maybeObj)
+    if (maybeObj)
     {
-        return;
+        AddBag(bagIdx, WoWContainer::Read(maybeObj->GetAddress()));
     }
-    AddBag(WoWContainer::Read(maybeObj->GetAddress()));
+    else
+    {
+        AddBag(bagIdx, WoWContainer());
+    }
 }
 
 void WoWInventory::SetBackpackItem(uint8_t index, uint64_t itemGuid)
@@ -32,7 +35,6 @@ void WoWInventory::SetBackpackItem(uint8_t index, uint64_t itemGuid)
 
 void WoWInventory::Clear()
 {
-    mBags.clear();
 }
 
 uint32_t WoWInventory::EmptySlotCount() const
@@ -67,12 +69,12 @@ bool WoWInventory::IsFull() const
 boost::optional<WoWItem>
 WoWInventory::GetItemByName(const std::string& name) const
 {
-    boot::optional<WoWItem> output = boot::none;
+    boost::optional<WoWItem> output = boost::none;
     ForEachItem([&name, &output] (const WoWItem& item, uint8_t, uint8_t) {
         if (item.GetName() == name)
         {
             output = boost::make_optional(item);
-            return false
+            return false;
         }
         return true;
     });
@@ -93,9 +95,9 @@ WoWInventory::GetItemCountByName(const std::string& name) const
     return count;
 }
 
-void WoWInventory::ForEachItem(ItemVisitor f)
+void WoWInventory::ForEachItem(ItemVisitor f) const
 {
-    for (auto slotIndex = 0; slotIndex < mBackpack.size(); slotIndex++)
+    for (uint32_t slotIndex = 0; slotIndex < mBackpack.size(); slotIndex++)
     {
         const auto& item = mBackpack[slotIndex];
         if (item.GetGUID() != 0)
@@ -107,12 +109,12 @@ void WoWInventory::ForEachItem(ItemVisitor f)
             }
         }
     }
-    for (auto bagIndex = 0; bagIndex < mBags.size(); bagIndex++)
+    for (uint32_t bagIndex = 0; bagIndex < mBags.size(); bagIndex++)
     {
         const auto& bag = mBags[bagIndex];
         for (const auto& k_v : bag.mSlots)
         {
-            const slotIndex = k_v.first;
+            const auto slotIndex = k_v.first;
             const auto& item = k_v.second;
             bool keepGoing = f(item, bagIndex, slotIndex);
             if (!keepGoing)

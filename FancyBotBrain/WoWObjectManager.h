@@ -11,6 +11,7 @@ class WoWObjectManager
 public:
 	typedef std::unordered_map<uint64_t, const WoWObject> ObjectMap;
 	typedef std::vector<WoWUnit> UnitContainer;
+    typedef std::unordered_map<uint64_t, WoWUnit> UnitMap;
 
     typedef bool(__fastcall *EnumCallback)(uint64_t guid, void* arg);
 
@@ -49,12 +50,16 @@ public:
 
     const UnitContainer& GetEnemyUnits() const;
 
+    const boost::optional<WoWUnit>& GetTarget() const;
+
     nlohmann::json ToJson() const;
 
 private:
     void NewUnit(const WoWObject& object);
 
     void NewPlayer(const WoWObject& object);
+
+    void UpdateTarget();
 
     uint32_t GetUnitReaction(const WoWUnit& unit) const;
 
@@ -64,7 +69,9 @@ private:
 
 private:
     WoWPlayer mPlayer;
+    boost::optional<WoWUnit> mTarget;
 	ObjectMap mObjects;
+    UnitMap mUnitMap;
     UnitContainer mUnits;
     UnitContainer mEnemyUnits;
 };

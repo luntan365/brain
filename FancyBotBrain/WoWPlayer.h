@@ -47,6 +47,9 @@ public:
 
     concurrency::task<void> UseItemByName(const std::string& name) const;
 
+    concurrency::task<void> 
+    UseContainerItem(uint32_t bagId, uint32_t slotId) const;
+
     bool IsUnitHostile(const WoWUnit& unit) const;
 
     bool InRangeOf(const Vector3& v, float distance) const;
@@ -73,6 +76,8 @@ public:
 
     bool HasBrokenEquipment() const;
 
+    bool IsFullyRepaired() const;
+
     uint64_t GetVendorGuid() const;
 
 private:
@@ -88,6 +93,6 @@ protected:
 
     bool mIsLooting;
     bool mIsGhost;
-    bool mIsVendorOpen;
     int32_t mAutoRepeatingSpell;
+    uint64_t mVendorGuid;
 };
