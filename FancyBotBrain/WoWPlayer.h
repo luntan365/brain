@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EndSceneManager.h"
+#include "SpellBook.h"
 #include "WoWInventory.h"
 #include "WoWUnit.h"
 
@@ -60,6 +61,8 @@ public:
 
     const WoWInventory& GetInventory() const;
 
+    const SpellBook& GetSpellBook() const;
+
     const Position& GetCorpsePosition() const;
 
     bool IsGhost() const;
@@ -90,6 +93,7 @@ private:
 protected:
     Position mCorpsePosition;
     WoWInventory mInventory;
+    SpellBook mSpellBook;
 
     bool mIsLooting;
     bool mIsGhost;

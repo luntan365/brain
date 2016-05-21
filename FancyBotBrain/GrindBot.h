@@ -38,12 +38,12 @@ struct GrindBotConfiguration : public IBotConfig
 
     virtual bool FromJson(const nlohmann::json& json);
 
-    Position mVendorPosition;
     float mRestManaPercent;
     float mRestHealthPercent;
     std::string mDrinkName;
     std::string mFoodName;
     float mCombatRange;
+    float mPullRange;
     Position mGrindPosition;
     float mGrindMaxDistance;
 };

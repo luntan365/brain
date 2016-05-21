@@ -30,7 +30,7 @@ PathTracker::Tick()
             GetPointOnPath(
                 mPlayer.GetPosition(),
                 mPath.front(),
-                7 
+                10 
             )
         );
     }

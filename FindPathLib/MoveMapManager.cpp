@@ -44,7 +44,7 @@ void MoveMapManager::LoadMaps(const std::string& path)
 {
     ForEachFileGlob(
         boost::filesystem::path(path),
-        boost::regex(".*.mmap"),
+        boost::regex("000.mmap"),
         [this] (const bfs::path& p) {
             LoadMapFromFile(p.string());
         }
@@ -55,7 +55,7 @@ void MoveMapManager::LoadMapTiles(const std::string& path)
 {
     ForEachFileGlob(
         boost::filesystem::path(path),
-        boost::regex(".*.mmtile"),
+        boost::regex("000.*.mmtile"),
         [this] (const bfs::path& p) {
             LoadMapTileFromFile(p.string());
         }

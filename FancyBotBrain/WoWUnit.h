@@ -69,6 +69,10 @@ public:
 
     uint32_t GetFaction() const;
 
+    int32_t Health() const;
+
+    int32_t Mana() const;
+
     float ManaPercent() const;
 
     float HealthPercent() const;

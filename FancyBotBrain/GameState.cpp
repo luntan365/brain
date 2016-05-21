@@ -34,6 +34,7 @@ std::unique_lock<std::mutex> GameState::GetLock()
 void GameState::Update()
 {
 	mIsInGame = Offsets::IsInGame::Read();
+    UpdatePerformanceCounter();
 	if (mIsInGame)
 	{
         if (mFirstTick)
@@ -42,7 +43,7 @@ void GameState::Update()
             mFirstTick = false;
         }
         mObjectManager.UpdatePlayer();
-        if (std::chrono::steady_clock::now() - mLastTick > 100ms)
+        if (std::chrono::steady_clock::now() - mLastTick > 10ms)
         {
     		UpdateInGame();
             mLastTick = std::chrono::steady_clock::now();
@@ -87,6 +88,11 @@ const GossipPane& GameState::GetGossipPane() const
 }
 
 
+uint32_t GameState::GetPerformanceCounter() const 
+{
+    return mPerformanceCounter;
+}
+
 nlohmann::json GameState::ToJson() const
 {
     if (mIsInGame)
@@ -101,4 +107,11 @@ nlohmann::json GameState::ToJson() const
         j["in_game"] = false;
         return j;
     }
+}
+
+void GameState::UpdatePerformanceCounter() 
+{
+    typedef uint32_t (*GetPerfCounterFn)();
+    mPerformanceCounter = 
+        ((GetPerfCounterFn)StaticFields::STATIC_GET_PERFORMANCE_COUNTER)();
 }

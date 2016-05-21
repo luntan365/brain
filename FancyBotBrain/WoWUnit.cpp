@@ -141,3 +141,13 @@ uint32_t WoWUnit::GetId() const
 {
     return mId;
 }
+
+int32_t WoWUnit::Health() const
+{
+    return mHealth;
+}
+
+int32_t WoWUnit::Mana() const
+{
+    return mMana;
+}

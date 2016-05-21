@@ -1,7 +1,7 @@
 #include "PaladinClass.h"
 #include "BotIrcClient.h"
 
-PaladinConfig::PaladinConfig(const GrindBotConfiguration& config)
+PaladinConfig::PaladinConfig(const GrindBotConfiguration config)
     : GrindBotConfiguration(config)
     , mUseCrusader(true)
     , mUseBlessing(true)
@@ -55,22 +55,53 @@ PaladinClass::DoPull(const WoWPlayer& me, GameState& state)
 }
 
 
+std::string GetShieldSpell(const SpellBook& spells)
+{
+    const std::vector<std::string> shields {
+        "Divine Shield",
+        "Divine Protection",
+        "Blessing of Protection"
+    };
+    for (const auto& s : shields)
+    {
+        if (spells.KnowsSpell(s) && spells.IsReady(s))
+        {
+            return s;
+        }
+    }
+    return "";
+}
+
 
 concurrency::task<void>
 PaladinClass::DoCombat(const WoWPlayer& me, GameState& state)
 {
-    if (me.HealthPercent() < 40)
-    {
-        std::vector<concurrency::task<void>> tasks{
-            me.SetTarget(me),
-            me.CastSpellByName("Hammer of Justice"),
-            me.CastSpellByName("Holy Light")
-        };
-        return concurrency::when_all(tasks.begin(), tasks.end()).then([]{});
-    }
     const auto& enemyUnits = state.ObjectManager().GetEnemyUnits();
     const auto& attackableUnits = GetAttackableUnits(me, enemyUnits);
     const auto& attackers = GetAttackers(me, attackableUnits);
+    const auto& spells = me.GetSpellBook();
+    if (spells.KnowsSpell("Holy Light"))
+    {
+        const auto& holyLight = spells.GetMaxRankSpell("Holy Light");
+        if (me.HealthPercent() < 40 && me.Mana() >= holyLight.manaCost)
+        {
+            std::string spell = "Holy Light";
+            if (attackers.size() > 1 && !me.HasDebuff("Forbearance")) 
+            {
+                const auto shield = GetShieldSpell(spells);
+                if (shield != "")
+                {
+                    spell = shield;
+                }
+            }
+            std::vector<concurrency::task<void>> tasks{
+                me.SetTarget(me),
+                me.CastSpellByName(spell)
+            };
+            return concurrency::when_all(tasks.begin(), tasks.end())
+                .then([]{});
+        }
+    }
     const auto& losUnitsTask = GetInLosUnits(me, attackers);
     return losUnitsTask.then([this, &me, &state] (const std::vector<WoWUnit>& losUnits) {
         const auto closestUnit = GetClosestUnit(me, losUnits);
@@ -92,6 +123,15 @@ PaladinClass::DoRest(const WoWPlayer& me, GameState& state)
         (me.IsEating() && me.HealthPercent() < 100))
     {
         return concurrency::task_from_result(true);
+    }
+    else if (me.HealthPercent() < mConfig.mRestHealthPercent &&
+             me.ManaPercent() > 30)
+    {
+        return me.SetTarget(me).then([&me] {
+            return me.CastSpellByName("Holy Light");
+        }).then([] {
+            return true;
+        });
     }
     else if (me.ManaPercent() < mConfig.mRestManaPercent)
     {

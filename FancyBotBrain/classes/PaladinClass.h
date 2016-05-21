@@ -5,7 +5,7 @@
 
 struct PaladinConfig : public GrindBotConfiguration
 {
-    PaladinConfig(const GrindBotConfiguration& config);
+    PaladinConfig(const GrindBotConfiguration config);
 
     bool mUseCrusader;
     bool mUseBlessing;

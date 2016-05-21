@@ -30,12 +30,15 @@ void WoWItem::Read(WoWItem* pItem, void* pObject)
 	ReadOffsetInto(pDescriptor, ItemFields::ITEM_FIELD_MAXDURABILITY, &pItem->mMaxDurability);
 
     void* pItemCache = pItem->GetItemCacheAddress(pItem->mId);
-	pItem->mItemCache = hadesmem::Read<ItemCacheEntry>(GetThisProcess(), pItemCache);
+    if (pItemCache != nullptr)
+    {
+        pItem->mItemCache = hadesmem::Read<ItemCacheEntry>(GetThisProcess(), pItemCache);
 
-    pItem->mName = hadesmem::ReadString<char>(
-        GetThisProcess(),
-        (void*)pItem->mItemCache.nameAddress
-    );
+        pItem->mName = hadesmem::ReadString<char>(
+            GetThisProcess(),
+            (void*)pItem->mItemCache.nameAddress
+        );
+    }
 }
 
 const std::string&

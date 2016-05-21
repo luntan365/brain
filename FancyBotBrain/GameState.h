@@ -26,12 +26,16 @@ public:
 
     const GossipPane& GetGossipPane() const;
 
+    uint32_t GetPerformanceCounter() const; 
+
     nlohmann::json ToJson() const;
 
 private:
 	GameState();
 
     void UpdateInGame();
+
+    void UpdatePerformanceCounter();
 
 private:
 	bool mIsInGame;
@@ -42,6 +46,7 @@ private:
     WoWObjectManager mObjectManager;
     GossipPane mGossipPane;
     MerchantPane mMerchantPane;
+    uint32_t mPerformanceCounter;
 
     std::chrono::time_point<std::chrono::steady_clock> mLastTick;
 };

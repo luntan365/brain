@@ -59,14 +59,12 @@ nlohmann::json
 GrindBotConfiguration::ToJson()
 {
     nlohmann::json json({});
-    json["vendor_position_x"] = mVendorPosition.x;
-    json["vendor_position_y"] = mVendorPosition.y;
-    json["vendor_position_z"] = mVendorPosition.z;
     json["rest_health_percentage"] = mRestHealthPercent;
     json["rest_mana_percentage"] = mRestManaPercent;
     json["drink_name"] = mDrinkName;
     json["food_name"] = mFoodName;
     json["combat_range"] = mCombatRange;
+    json["pull_range"] = mPullRange;
     json["max_grind_distance"] = mGrindMaxDistance;
     return json;
 }
@@ -74,14 +72,12 @@ GrindBotConfiguration::ToJson()
 bool
 GrindBotConfiguration::FromJson(const nlohmann::json& json)
 {
-    mVendorPosition.x = json["vendor_position_x"];
-    mVendorPosition.y = json["vendor_position_y"];
-    mVendorPosition.z = json["vendor_position_z"];
     mRestHealthPercent = json["rest_health_percentage"];
     mRestManaPercent = json["rest_mana_percentage"];
     mDrinkName = json["drink_name"];
     mFoodName = json["food_name"];
     mCombatRange = json["combat_range"];
+    mPullRange = json["pull_range"];
     mGrindMaxDistance = json["max_grind_distance"];
     return true;
 }
@@ -98,6 +94,7 @@ GrindBot::GrindBot(MoveMapManager* pMoveMapManager)
     mConfig.mFoodName = "Forest Mushroom Cap";
     mConfig.mDrinkName = "Conjured Water";
     mConfig.mCombatRange = 4.0;
+    mConfig.mPullRange = 10.0;
 }
 
 void GrindBot::OnStart()
@@ -391,8 +388,16 @@ GrindBot::Tick(GameState& state)
     }
     else if (me.IsInCombat())
     {
-        irc.Log("Auto repeat: " + std::to_string(me.GetAutoRepeatingSpell()));
-        return DoCombat(me, state);
+        auto& target = state.ObjectManager().GetTarget();
+        if (target && me.InRangeOf(target->GetPosition(), mConfig.mCombatRange))
+        {
+            MoveTo(me, target->GetPosition());
+            return mPathTracker.Tick();
+        }
+        else
+        {
+            return DoCombat(me, state);
+        }
     }
     else if (state.GetMerchantPane().IsOpen() 
         && mGrindState == GrindBotState::VENDORING)
@@ -529,7 +534,7 @@ GrindBot::Tick(GameState& state)
                 }
                 const auto closestLosUnit = GetClosestUnit(me, losUnits);
                 if (currentPosition.Distance(closestLosUnit.GetPosition())
-                    < mConfig.mCombatRange)
+                    < mConfig.mPullRange)
                 {
                     irc.Log("Pulling mob");
                     std::vector<concurrency::task<void>> tasks = {

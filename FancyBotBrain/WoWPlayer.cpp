@@ -61,6 +61,7 @@ void WoWPlayer::Read(WoWPlayer* pPlayer, void* pObject)
     }
 
     pPlayer->mIsLooting = GetIsLooting(pObject);
+    pPlayer->mSpellBook.Read();
 }
 
 void WoWPlayer::Reset()
@@ -351,4 +352,10 @@ bool WoWPlayer::IsFullyRepaired() const
 uint64_t WoWPlayer::GetVendorGuid() const
 {
     return mVendorGuid;
+}
+
+const SpellBook&
+WoWPlayer::GetSpellBook() const
+{
+    return mSpellBook;
 }

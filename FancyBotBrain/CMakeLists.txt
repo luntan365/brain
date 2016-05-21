@@ -38,6 +38,7 @@ set(Brain_SRCS
     MerchantPane.cpp
     PathTracker.cpp
     Position.cpp
+    SpellBook.cpp
     Spells.cpp
     WoWContainer.cpp
     WoWInventory.cpp

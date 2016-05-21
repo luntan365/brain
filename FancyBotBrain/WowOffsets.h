@@ -104,7 +104,11 @@ struct StaticFields
     static constexpr uintptr_t STATIC_OPTIONS_END_OFFSET = 2048;
     static constexpr uintptr_t STATIC_OPTIONS_ITER = 2060;
     static constexpr uintptr_t STATIC_GOSSIP_TYPE = 2056;
-
+    static constexpr void* STATIC_SPELLBOOK = (void*)0xB700F0;
+    static constexpr void* STATIC_GET_SPELL_COOLDOWN = (void*)0x6E2EA0;
+    static constexpr void* STATIC_SPELL_COOLDOWN_PTR = (void*)0xCECAEC;
+    static constexpr void* STATIC_SPELL_COOLDOWN_OFFSET = (void*)0xCECAF4;
+	static constexpr uintptr_t STATIC_GET_PERFORMANCE_COUNTER = 0x42C010;        
 };
 
 struct ObjectFields
